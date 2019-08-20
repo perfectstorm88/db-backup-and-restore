@@ -32,6 +32,12 @@ def read_config():
         config_obj =  AttrDict(config_obj)
     return config_obj
 
+def remote_save(localFilePath, config):
+    if not localFilePath:
+        return
+    ossConf = config.oss
+    oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+    oss.upload(localFilePath, "backup/a.gz")
 
 def backup(task,config):
     # if not os.path.exists(LOCAL_SAVE_PATH['sites']):
@@ -46,7 +52,7 @@ def backup(task,config):
     #         return
     db_file = backup_db(task,config)
     print('db_file=',db_file)
-    # remote_save(db_files)
+    remote_save(db_file, config)
     clear_old_backup(config,db_file)
 
 
@@ -108,11 +114,11 @@ def backup_db_mongodb(task,config):
             print(buff)
             if proc.poll() != None:
                 break
-    except Exception:
+    except Exception as e:
         status = -1
     status = proc.returncode
     if status != 0:
-        log('备份数据库{0}出错,返回值为{1},执行的命令为{2}'.format(task['name'],result,cmd))
+        log('备份数据库{0}出错,执行的命令为{1}'.format(task['name'],cmd))
         return None
     else:
         # 获得db_filepath下的子目录，作为数据库名称

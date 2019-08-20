@@ -2,10 +2,10 @@
 tmpPath: './temp'
 archivePath: './archive'
 oss:
-  url: "https://play.minio.io:9000"
-  bucket: "bucketName"
-  accessKey: "Q3AM3UQ867SPQQA43P2F"
-  secretKey: "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
+  url: "http://oss-cn-hangzhou.aliyuncs.com"
+  bucket: "jfjun4test"
+  accessKey: "LTAI9ziVIDTcSbW0"
+  secretKey: "fsITkWUPxjfljcS3lEsdZSlGBlGhcN"
   prefix: 'backup/'
   # number of backups to keep locally
   expireDays: 730

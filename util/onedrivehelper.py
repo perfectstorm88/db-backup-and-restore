@@ -1,6 +1,6 @@
 import requests
 import json
-from config import *
+# from config import *
 import time
 import os
 from urllib import parse
