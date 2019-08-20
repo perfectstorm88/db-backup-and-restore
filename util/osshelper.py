@@ -35,7 +35,7 @@ class OssHelper:
             offset = 0
             while offset < total_size:
                 num_to_upload = min(part_size, total_size - offset)
-		        # SizedFileAdapter(fileobj, size)方法会生成一个新的文件对象，重新计算起始追加位置。
+                # SizedFileAdapter(fileobj, size)方法会生成一个新的文件对象，重新计算起始追加位置。
                 result = self.bucket.upload_part(key, upload_id, part_number,
                                             SizedFileAdapter(fileobj, num_to_upload))
                 parts.append(PartInfo(part_number, result.etag))
