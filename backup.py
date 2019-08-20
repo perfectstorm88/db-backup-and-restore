@@ -44,14 +44,14 @@ def backup(task,config):
     #         print(msg)
     #         log(msg)
     #         return
-    db_files = backup_db(task,config)
-    print('db_files=',db_files)
+    db_file = backup_db(task,config)
+    print('db_file=',db_file)
     # remote_save(db_files)
-    clear_old_backup(config,db_files)
+    clear_old_backup(config,db_file)
 
 
 #清除旧备份文件
-def clear_old_backup(config,db_files):
+def clear_old_backup(config,db_file):
     if 'oss' in config:
         #清除oss旧文件
         pass
@@ -69,22 +69,21 @@ def clear_old_backup(config,db_files):
         #         if is_oldfile(os.path.basename(file)):
         #             cos.delete(file)
     else: # 没有配置local，表示不进行本地存档
-        for f in db_files:
-            os.remove(f)
+        os.remove(db_file)
 
 # 备份数据库
 def backup_db(task,config):
-    db_files = []
     db_type = task['type']
+    db_file = None
     if db_type not in 'mssql,mysql,mongodb':
         log('type数据库类型错误,应该为mssql,mysql')
     log('备份数据库{0}:{1} 开始'.format(db_type,task['name']))
     if db_type == 'mongodb':
-        db_files.append(backup_db_mongodb(task,config))
+        db_file =  backup_db_mongodb(task,config)
     else:
         raise Exception(f'unsupported db_type {db_type}')
     log('备份数据库{0}:{1} 结束'.format(db_type,task['name']))
-    return db_files
+    return db_file
 
 #备份 mongodb 数据库
 def backup_db_mongodb(task,config):
