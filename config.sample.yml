@@ -1,4 +1,6 @@
 # 存放到OSS
+tmpPath: './temp'
+archivePath: './archive'
 oss:
   url: "https://play.minio.io:9000"
   bucket: "bucketName"
@@ -8,34 +10,39 @@ oss:
   # number of backups to keep locally
   expireDays: 730
   retention: 14
-  longTime:
+  sparseStrategy:
     - byMonth: 2 # 如果超过2个月，每个月只保留一份
     - byYear: 2 # 如果超过2年，每年只保留一份
 
 # 存放到本地,存放目录 {path}/{task.name}/
 local:
-  path: './backup'
   # number of backups to keep locally
   expireDays: 730
-  retention: 14   # 与expireDays
+  retention: 10   # 与expireDays
   sparseStrategy: # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
     # - byDay: 1 # 如果超过1天，每个天只保留一份
     # - byWeek: 1 # 如果超过1周，每个周只保留一份
     - byMonth: 2 # 如果超过2个月后，每个月只保留一份
     - byYear: 2 # 如果超过2年后，每年只保留一份
 
-task:
+tasks:
+  - name: 'mongo_lcz_test1'
+    type: 'mongodb'
+    cron: "0 6,18 */1 * *"  # run every day at 6:00 and 18:00 UTC
+    params:  # 通过mongodump执行的参数
+      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
+      d: lcz_test1
+      u: test
+      p: test
+      h: 47.97.22.225:13722
+
   - name: 'mongo_mg_test2'
-    type: 'mongo'
+    type: 'mongodb'
     cron: "0 6,18 */1 * *"  # run every day at 6:00 and 18:00 UTC
     params:  # 通过mongodump执行的参数
       uri: "mongodb://jfjun:lingxi88_c7ced87e@47.97.22.225:23717/jfjun_szjy2"
-      
-  - name: 'mongo_jfjun_szjy2'
-    type: 'mongo'
-    cron: "0 6,18 */1 * *"  # run every day at 6:00 and 18:00 UTC
-    params:  # 通过mongodump执行的参数
-      uri: "mongodb://jfjun:lingxi88_c7ced87e@dds-bp113b6c8598938433290.mongodb.rds.aliyuncs.com:3717/jfjun_szjy2"
+
+
   
 
   
