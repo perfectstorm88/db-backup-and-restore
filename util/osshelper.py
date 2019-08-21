@@ -11,7 +11,17 @@ class OssHelper:
         self.bucket = oss2.Bucket(self.auth, url, bucket)
 
     def get_file_list(self,dir = ''):
-        return [b.key for b in oss2.ObjectIterator(self.bucket,prefix=dir)]
+        result = []
+        ossObjects = oss2.ObjectIterator(self.bucket,prefix=dir)
+        for ossObject in ossObjects:
+            result.append({
+                "name":os.path.basename(ossObject.key),
+                "size":ossObject.size,
+                "isLocal":False
+
+            })
+        return result
+        # return [ for b in oss2.ObjectIterator(self.bucket,prefix=dir)]
 
     def upload(self,upload_path,filepath):
         """
@@ -58,5 +68,5 @@ class OssHelper:
         self.bucket.delete_object(obj_name)
 
 if __name__ == '__main__':
-    oss = OssHelper('44','55','oss-cn-66.66.com','66')
-    print(oss.get_file_list('sites/'))
+    oss = OssHelper('LTAI9ziVIDTcSbW0','fsITkWUPxjfljcS3lEsdZSlGBlGhcN','http://oss-cn-hangzhou.aliyuncs.com','jfjun4test')
+    print(oss.get_file_list('backup/'))
