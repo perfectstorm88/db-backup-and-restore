@@ -1,6 +1,9 @@
 
-
+import pydash
+import os
 from backup import read_config
+from util.osshelper import OssHelper
+
 
 class RestoreHelper(object):
     def __init__(self):
@@ -49,8 +52,22 @@ class RestoreHelper(object):
             return 'get_file_list'
 
     def get_file_list(self):
-        '''先获取本地文件列表 + 在获取OSS上的文件列表'''
-        # TODO
+        # 先获取本地文件列表
+        archivePath = pydash.get(self.config, 'archivePath')
+        if not archivePath:
+            raise Exception("配置缺少archivePath")
+        local_dir = archivePath + "/" + self.task.name
+        for dir in os.listdir(local_dir):
+            self.zip_files.append({
+                "name":dir,
+                "size":os.path.getsize(os.path.join(local_dir, dir)),
+                "isLocal":True
+            })
+        #在获取OSS上的文件列表
+        ossConf = self.config.oss
+        oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+        fileList = oss.get_file_list(f"{archivePath}/{self.task.name}/")
+        self.zip_files.extend(fileList)
         print('please choice the following file to restore')
         if len(self.zip_files):
             return
@@ -84,7 +101,10 @@ class RestoreHelper(object):
 
 
 if __name__ == '__main__':
-    r = RestoreHelper()
-    status = 'start'
-    while True:
-        status = getattr(r, status)()
+    # r = RestoreHelper()
+    # status = 'start'
+    # while True:
+    #     status = getattr(r, status)()
+    for dir in os.listdir("./util/"):
+        print(dir, os.path.getsize(os.path.abspath(dir)))
+        # print(dir)
