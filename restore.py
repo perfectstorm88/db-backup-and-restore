@@ -8,6 +8,12 @@ import pymongo
 from backup import read_config
 from util.filehelper import FileHelper
 from util.attr_dict import AttrDict
+import pydash
+import os
+from backup import read_config
+from util.osshelper import OssHelper
+
+
 class RestoreHelper(object):
     def __init__(self):
         self.config = read_config()
@@ -20,7 +26,7 @@ class RestoreHelper(object):
         return 'wait_uri'
 
     def wait_uri(self):
-        print('please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test)')
+        print('please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test  mongodb://test:test@47.97.22.225:13722/lcz_test1)')
         self.uri = input('(uri)->').strip()
         if len(self.uri) == 0:
             return 'wait_uri'
@@ -52,19 +58,50 @@ class RestoreHelper(object):
             self.task = self.config.tasks[task_idx]
             return 'get_file_list'
 
-    def get_file_list(self):
-        '''先获取本地文件列表 + 在获取OSS上的文件列表'''
-        # TODO
-        self.file_obj_list = []
-        local_path = os.path.join(self.config.archivePath,self.task.name)
-        self.file_obj_list.extend(self._get_local_file(local_path))
-        if len(self.file_obj_list)==0:
-            print(f'could not find any file for the backup task[{self.task.name}],please choice new task again')
-            return 'choice_task'
+    def get_size(self, size):
+        def strofsize(integer, remainder, level):
+            if integer >= 1024:
+                remainder = integer % 1024
+                integer //= 1024
+                level += 1
+                return strofsize(integer, remainder, level)
+            else:
+                return integer, remainder, level
 
+        units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+        integer, remainder, level = strofsize(size, 0, 0)
+        if level + 1 > len(units):
+            level = -1
+        return ('{}.{:>03d} {}'.format(integer, remainder, units[level]))
+
+    def get_file_list(self):
+        # 先获取本地文件列表
+        archivePath = pydash.get(self.config, 'archivePath')
+        if not archivePath:
+            raise Exception("配置缺少archivePath")
+        local_dir = archivePath + "/" + self.task.name
+        if os.path.exists(local_dir):
+            for _dir in os.listdir(local_dir):
+                self.file_obj_list.append(AttrDict({
+                    "name":_dir,
+                    "size":os.path.getsize(os.path.join(local_dir, _dir)),
+                    "isLocal":True,
+                    "path":os.path.join(local_dir, _dir)
+                }))
+        #在获取OSS上的文件列表
+        ossConf = self.config.oss
+        oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+        fileList = oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
+        self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
+        if not len(self.file_obj_list):
+            return
         for i, file_obj in enumerate(self.file_obj_list):
-            print(f" {i}) {file_obj['name']} {file_obj['size']} ({file_obj['type']})")
+            _local_or_remote = "local" if file_obj["isLocal"] else 'remote'
+            # print(
+            #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')
+            print(
+                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({_local_or_remote})')
         print('-1) return last step')
         return 'choice_file'
 
@@ -87,7 +124,7 @@ class RestoreHelper(object):
             string.ascii_letters + string.digits, 8))
         db_filepath = os.path.join(self.config.tmpPath, _temp_dir)
         print("*"*90,db_filepath)
-        if self.file_obj['type'] == 'local':
+        if self.file_obj['isLocal']:
             zip_file =  self.file_obj.path
         else:
             # 从oss下载
@@ -96,11 +133,11 @@ class RestoreHelper(object):
         # 解压到临时目录
         shutil.unpack_archive(zip_file,db_filepath)
         # 找到数据库名称
-        sub_dir = [f for f in os.listdir(db_filepath) if os.path.isdir(os.path.join(db_filepath,f))]
-        if len(db_filepath)>1:
+        sub_dir_list = [f for f in os.listdir(db_filepath) if os.path.isdir(os.path.join(db_filepath,f))]
+        if len(sub_dir_list)>1:
             return 'choice_database'
         # 执行mongodb
-        self.db_file_dir = os.path.join(db_filepath,sub_dir)
+        self.db_file_dir = os.path.join(db_filepath,sub_dir_list[0])
         return 'exec_mongorestore'
 
     def exec_mongorestore(self):
@@ -160,3 +197,5 @@ if __name__ == '__main__':
     status = 'start'
     while True:
         status = getattr(r, status)()
+
+
