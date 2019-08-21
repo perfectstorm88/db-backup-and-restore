@@ -44,8 +44,7 @@ def remote_save(localFilePath, config, taskName):
         return
     ossConf = config.oss
     oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-    names = localFilePath.split("/")
-    ossPath = ossConf.prefix + taskName + "/"+time.strftime('%Y%m%d%H%M%S') + ".gz"
+    ossPath = ossConf.prefix + taskName + "/" + os.path.basename(localFilePath)
     oss.upload(ossPath, localFilePath)
 
 def backup(task, config):
