@@ -6,11 +6,13 @@ import sys
 import datetime
 import subprocess
 import yaml
+import time
 import random
 import string
 import shutil
 import pydash
 from util.loghelper import LogHelper
+from util.osshelper import OssHelper
 from util.attr_dict import AttrDict
 
 def log(msg):
@@ -37,6 +39,14 @@ def read_config():
         raise Exception('config.yml tasks not defined!')
     return config_obj
 
+def remote_save(localFilePath, config, taskName):
+    if not localFilePath:
+        return
+    ossConf = config.oss
+    oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+    names = localFilePath.split("/")
+    ossPath = ossConf.prefix + taskName + "/"+time.strftime('%Y%m%d%H%M%S') + ".gz"
+    oss.upload(ossPath, localFilePath)
 
 def backup(task, config):
     # if not os.path.exists(LOCAL_SAVE_PATH['sites']):
@@ -49,10 +59,10 @@ def backup(task, config):
     #         print(msg)
     #         log(msg)
     #         return
-    db_file = backup_db(task, config)
-    print('db_file=', db_file)
-    # remote_save(db_files)
-    clear_old_backup(config, db_file)
+    db_file = backup_db(task,config)
+    print('db_file=',db_file)
+    remote_save(db_file, config, task.name)
+    clear_old_backup(config,db_file)
 
 
 # 清除旧备份文件
@@ -78,8 +88,8 @@ def backup_db(task, config):
     if db_type == 'mongodb':
         db_file = backup_db_mongodb(task, config)
     else:
-        raise Exception(f'unsupported db_type {db_type}')
-    log('备份数据库{0}:{1} 结束'.format(db_type, task['name']))
+        raise Exception(f"unsupported db_type {db_type}")
+    log('备份数据库{0}:{1} 结束'.format(db_type,task['name']))
     return db_file
 
 # 备份 mongodb 数据库
@@ -109,11 +119,11 @@ def backup_db_mongodb(task, config):
             print(buff)
             if proc.poll() is not None:
                 break
-    except Exception:
+    except Exception as e:
         status = -1
     status = proc.returncode
     if status != 0:
-        log('备份数据库{0}出错,返回值为{1},执行的命令为{2}'.format(task['name'], status, cmd))
+        log('备份数据库{0}出错,执行的命令为{1}'.format(task['name'],cmd))
         return None
     else:
         # 获得db_filepath下的子目录，作为数据库名称
