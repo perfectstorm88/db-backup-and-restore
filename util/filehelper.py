@@ -14,24 +14,11 @@ class FileHelper(object):
     @staticmethod
     def get_file_list(path):
         filelist=[]
-        for root,dir,files in os.walk(path):
+        for root, dir, files in os.walk(path):
             for file in files:
                 fullpath = os.path.join(root,file)
                 filelist.append(fullpath)
         return filelist
-    @staticmethod
-    def open_json(filepath):
-        with open(filepath,'r') as f:
-            try:
-                data = json.load(f)
-                return data
-            except Exception as e:
-                return None
-
-    @staticmethod
-    def write_json(filepath,data):
-        with open(filepath,'w') as f:
-            json.dump(data,f,ensure_ascii=False)
 
     @staticmethod
     def delete(path):
@@ -493,6 +480,14 @@ class FileHelper(object):
         """
         _time = time.localtime(timestamp)
         return time.strftime('%Y-%m-%d %H:%M:%S',_time)
+    
+    @staticmethod
+    def sizeof_fmt(num, suffix='B'):
+        for unit in ['','K','M','G','T','P','E','Z']:
+            if abs(num) < 1024.0:
+                return "%3.1f%s%s" % (num, unit, suffix)
+            num /= 1024.0
+        return "%.1f%s%s" % (num, 'Yi', suffix)    
 
 if __name__ == '__main__':
     #files = [r'D:\Save\temp\bbb',r'D:\Save\temp\11.zip']

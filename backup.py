@@ -35,6 +35,13 @@ def read_config():
         config_obj = yaml.safe_load(f.read())
         config_obj = AttrDict(config_obj)
 
+    if not config_obj.tmpPath:
+        raise Exception('config.yml not define tmpPath!')
+    config_obj.tmpPath = os.path.join(os.path.dirname(__file__),config_obj.tmpPath)
+    if not config_obj.archivePath:
+        raise Exception('config.yml not define archivePath!')
+    config_obj.archivePath = os.path.join(os.path.dirname(__file__),config_obj.archivePath)
+
     if not config_obj.tasks:
         raise Exception('config.yml tasks not defined!')
     return config_obj
@@ -96,10 +103,9 @@ def backup_db(task, config):
 
 
 def backup_db_mongodb(task, config):
-    if not task.id:
-        task.id = ''.join(random.sample(
+    _temp_dir = ''.join(random.sample(
             string.ascii_letters + string.digits, 8))
-    db_filepath = os.path.join(config.tmpPath, task.id)
+    db_filepath = os.path.join(config.tmpPath, _temp_dir)
     os.makedirs(db_filepath)
     print(task.params)
     cmd = 'mongodump '
