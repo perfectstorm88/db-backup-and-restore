@@ -10,6 +10,7 @@ from  util.coshelper import CosHelper
 from  util.osshelper import OssHelper
 from  util.onedrivehelper import OneDriveHelper
 import yaml
+import time
 import random
 import string
 import shutil
@@ -37,7 +38,8 @@ def remote_save(localFilePath, config):
         return
     ossConf = config.oss
     oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-    oss.upload(localFilePath, "backup/a.gz")
+    ossPath = ossConf.prefix + time.strftime('%Y%m%d%H%M%S') + ".gz"
+    oss.upload(ossPath, localFilePath)
 
 def backup(task,config):
     # if not os.path.exists(LOCAL_SAVE_PATH['sites']):
@@ -87,7 +89,7 @@ def backup_db(task,config):
     if db_type == 'mongodb':
         db_file =  backup_db_mongodb(task,config)
     else:
-        raise Exception(f'unsupported db_type {db_type}')
+        raise Exception(f"unsupported db_type {db_type}")
     log('备份数据库{0}:{1} 结束'.format(db_type,task['name']))
     return db_file
 
@@ -101,9 +103,11 @@ def backup_db_mongodb(task,config):
     cmd = 'mongodump '
     for (k,v) in  task.params.items():
         cmd += ('--' if len(k)>1 else '-')
-        cmd += f'{k}={v} '
+        # cmd += f'{k}={v} '
+        cmd = cmd + k + "=" + v
     
-    cmd += f' --out={db_filepath}'
+    # cmd += f' --out={db_filepath}'
+    cmd = cmd + " --out=" + db_filepath
     print(cmd)
     archive_type = 'zip'
     status = 0
@@ -150,4 +154,5 @@ if __name__ == '__main__':
     task = config.tasks[0]
     start(task,config)
     # shutil.unpack_archive('./temp/x.zip','./temp/y')
+    # print(time.strftime('%Y%m%d%H%M%S'))
     
