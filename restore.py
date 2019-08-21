@@ -51,30 +51,49 @@ class RestoreHelper(object):
             self.task = self.config.tasks[task_idx]
             return 'get_file_list'
 
+    def get_size(self, size):
+        def strofsize(integer, remainder, level):
+            if integer >= 1024:
+                remainder = integer % 1024
+                integer //= 1024
+                level += 1
+                return strofsize(integer, remainder, level)
+            else:
+                return integer, remainder, level
+
+        units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+        integer, remainder, level = strofsize(size, 0, 0)
+        if level + 1 > len(units):
+            level = -1
+        return ('{}.{:>03d} {}'.format(integer, remainder, units[level]))
+
     def get_file_list(self):
         # 先获取本地文件列表
         archivePath = pydash.get(self.config, 'archivePath')
         if not archivePath:
             raise Exception("配置缺少archivePath")
         local_dir = archivePath + "/" + self.task.name
-        for dir in os.listdir(local_dir):
-            self.zip_files.append({
-                "name":dir,
-                "size":os.path.getsize(os.path.join(local_dir, dir)),
-                "isLocal":True
-            })
+        if os.path.exists(local_dir):
+            for dir in os.listdir(local_dir):
+                self.zip_files.append({
+                    "name":dir,
+                    "size":os.path.getsize(os.path.join(local_dir, dir)),
+                    "isLocal":True
+                })
         #在获取OSS上的文件列表
         ossConf = self.config.oss
         oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-        fileList = oss.get_file_list(f"{archivePath}/{self.task.name}/")
+        fileList = oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
         self.zip_files.extend(fileList)
         print('please choice the following file to restore')
-        if len(self.zip_files):
+        if not len(self.zip_files):
             return
         for i, file_obj in enumerate(self.zip_files):
-            _local_or_remote = "local" if file_obj.is_local else 'remote'
+            _local_or_remote = "local" if file_obj["isLocal"] else 'remote'
+            # print(
+            #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')
             print(
-                f' {i}) {file_obj.name} {int(file_obj/1024/1024)}MB ({_local_or_remote})')
+                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({_local_or_remote})')
         print('-1) return last step')
         return 'choice_file'
 
@@ -101,10 +120,11 @@ class RestoreHelper(object):
 
 
 if __name__ == '__main__':
-    # r = RestoreHelper()
-    # status = 'start'
-    # while True:
-    #     status = getattr(r, status)()
-    for dir in os.listdir("./util/"):
-        print(dir, os.path.getsize(os.path.abspath(dir)))
-        # print(dir)
+    r = RestoreHelper()
+    status = 'start'
+    while True:
+        status = getattr(r, status)()
+    # o = r.get_size(20489)
+    # print(o)
+
+
