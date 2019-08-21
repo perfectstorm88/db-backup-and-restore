@@ -16,7 +16,7 @@ class OssHelper:
         for ossObject in ossObjects:
             result.append({
                 "name":os.path.basename(ossObject.key),
-                "size":ossObject.key,
+                "size":ossObject.size,
                 "isLocal":False
 
             })
