@@ -1,2 +1,4 @@
 oss2
 cos-python-sdk-v5
+schedule
+pydash
