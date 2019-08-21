@@ -28,7 +28,27 @@ local:
 tasks:
   - name: 'mongo_lcz_test1'
     type: 'mongodb'
-    cron: "0 6,18 */1 * *"  # run every day at 6:00 and 18:00 UTC
+    schedule: "day 13:15" # 每天 13:15执行
+    params:  # 通过mongodump执行的参数
+      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
+      d: lcz_test1
+      u: test
+      p: test
+      h: 47.97.22.225:13722
+
+  - name: 'mongo_lcz_test2'
+    type: 'mongodb'
+    schedule: "hour :31" # 每小时 at :31执行
+    params:  # 通过mongodump执行的参数
+      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
+      d: lcz_test1
+      u: test
+      p: test
+      h: 47.97.22.225:13722
+
+  - name: 'mongo_lcz_test3'
+    type: 'mongodb'
+    schedule: "hour :21" # 每天 13:15执行
     params:  # 通过mongodump执行的参数
       # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
       d: lcz_test1
@@ -38,7 +58,7 @@ tasks:
 
   - name: 'mongo_mg_test2'
     type: 'mongodb'
-    cron: "0 6,18 */1 * *"  # run every day at 6:00 and 18:00 UTC
+    schedule: "hour :00"  # 每周
     params:  # 通过mongodump执行的参数
       uri: "mongodb://jfjun:lingxi88_c7ced87e@47.97.22.225:23717/jfjun_szjy2"
 
