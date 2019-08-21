@@ -33,12 +33,13 @@ def read_config():
         config_obj =  AttrDict(config_obj)
     return config_obj
 
-def remote_save(localFilePath, config):
+def remote_save(localFilePath, config, taskName):
     if not localFilePath:
         return
     ossConf = config.oss
     oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-    ossPath = ossConf.prefix + time.strftime('%Y%m%d%H%M%S') + ".gz"
+    names = localFilePath.split("/")
+    ossPath = ossConf.prefix + taskName + "/"+time.strftime('%Y%m%d%H%M%S') + ".gz"
     oss.upload(ossPath, localFilePath)
 
 def backup(task,config):
@@ -54,7 +55,7 @@ def backup(task,config):
     #         return
     db_file = backup_db(task,config)
     print('db_file=',db_file)
-    remote_save(db_file, config)
+    remote_save(db_file, config, task.name)
     clear_old_backup(config,db_file)
 
 
@@ -154,5 +155,7 @@ if __name__ == '__main__':
     task = config.tasks[0]
     start(task,config)
     # shutil.unpack_archive('./temp/x.zip','./temp/y')
-    # print(time.strftime('%Y%m%d%H%M%S'))
-    
+    # print("backup/" + time.strftime('%Y%m%d%H%M%S') + '.gz')
+    path = "/root/mongodb-backup-and-restore/archive/mongo_lcz_test1/20190821103404.zip"
+    paths = path.split("/")
+    print(paths)
