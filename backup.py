@@ -32,6 +32,9 @@ def read_config():
     with open(config_file, 'rt', encoding='utf-8') as f:
         config_obj = yaml.safe_load(f.read())
         config_obj = AttrDict(config_obj)
+
+    if not config_obj.tasks:
+        raise Exception('config.yml tasks not defined!')
     return config_obj
 
 
@@ -144,10 +147,13 @@ def loop():
     for task in config.tasks:
         _schedule = task.schedule
         [schedule_type, at] = _schedule.split(' ')
+        
         if schedule_type == 'day':
             schedule.every().day.at(at).do(start, task=task, config=config)
         elif schedule_type == 'hour':
             schedule.every().hour.at(at).do(start, task=task, config=config)
+        elif schedule_type in ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']:
+            getattr(schedule.every(), schedule_type).at(at).do(start, task=task, config=config)
         else:
             raise Exception('不支持的'+task.schedule)
 
