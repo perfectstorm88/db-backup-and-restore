@@ -12,6 +12,7 @@ import string
 import shutil
 import pydash
 from util.loghelper import LogHelper
+from util.osshelper import OssHelper
 from util.attr_dict import AttrDict
 
 def log(msg):
