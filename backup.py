@@ -10,7 +10,7 @@ import random
 import string
 import shutil
 import pydash
-from util.logHelper import LogHelper
+from util.loghelper import LogHelper
 from util.attr_dict import AttrDict
 
 def log(msg):
@@ -161,7 +161,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', "--loop", action='store_true',
                         help='run as deamon,loop until exit!')
-    parser.add_argument('-t', "--task", type=str, help="backup task name")
+    parser.add_argument('-t', "--task", type=str, help="backup one task immediately by input name")
     args = parser.parse_args()
     if args.loop:
         print("start loop all task!")
@@ -174,5 +174,6 @@ if __name__ == '__main__':
             exit()
         print('start backup task immediately')
         start(_task, _config)
-
+    else:
+        parser.print_help()
     # shutil.unpack_archive('./temp/x.zip','./temp/y')
