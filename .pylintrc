@@ -1,0 +1,17 @@
+[MESSAGES CONTROL]
+
+# Enable the message, report, category or checker with the given id(s). You can
+# either give multiple identifier separated by comma (,) or put this option
+# multiple time.
+#enable=
+
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifier separated by comma (,) or put this option
+# multiple time (only on the command line, not in the configuration file where
+# it should appear only once).
+disable=C0103,C0111,W1203,W0703
+
+
+[FORMAT]
+# Good variable names which should always be accepted, separated by a comma
+good-names=i,j,k,ex,Run,_,pk,x,y,f,v

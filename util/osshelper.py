@@ -2,7 +2,6 @@ import os
 from oss2 import SizedFileAdapter, determine_part_size
 from oss2.models import PartInfo
 import oss2
-from util.loghelper import LogHelper
 
 class OssHelper:
 
