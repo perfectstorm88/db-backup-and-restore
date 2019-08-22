@@ -112,7 +112,7 @@ class RestoreHelper(object):
         file_idx = int(file_idx)
         if file_idx < 0:
             return 'choice_task'
-        elif file_idx >= len(self.config.tasks):
+        elif file_idx >= len(self.file_obj_list):
             print('the index no exist,print input  again!')
             return 'choice_file'
         else:
@@ -131,7 +131,8 @@ class RestoreHelper(object):
         else:
             # 从oss下载
             oss_path = f"{self.oss_conf.prefix}{self.task.name}/{self.file_obj['name']}"
-            zip_file = os.path.join(db_filepath, self.file_obj['name'])
+            zip_file = os.path.join(db_filepath.replace('./', ''), self.file_obj['name'])
+            print('------------------------------', oss_path, zip_file)
             self.oss.download(oss_path, zip_file)
         print(zip_file,db_filepath)
         # 解压到临时目录

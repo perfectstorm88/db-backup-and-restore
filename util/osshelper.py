@@ -80,8 +80,9 @@ class OssHelper:
             sys.stdout.flush()
 
     def download(self, ossObject, loaclFile):
+        print(ossObject, loaclFile, '--------------------------------')
         oss2.resumable_download(self.bucket, ossObject, loaclFile,
-                                store=oss2.ResumableDownloadStore(root='/tmp'),
+                                store=oss2.ResumableDownloadStore(root=os.path.dirname(loaclFile)),
                                 multiget_threshold=1 * 1024,
                                 part_size=10 * 1024 * 1024,
                                 num_threads=3,
