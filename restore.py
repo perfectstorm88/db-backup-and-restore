@@ -20,6 +20,8 @@ class RestoreHelper(object):
         self.task = None
         self.file_obj= None
         self.file_obj_list = []  # {name:文件名,size:文件大小,type:'local' or 'oss' or 'qinu'}
+        self.oss_conf = self.config.oss
+        self.oss = OssHelper(self.oss_conf.accessKey, self.oss_conf.secretKey, self.oss_conf.url, self.oss_conf.bucket)
 
     def start(self):
         print('welcome to use mongodb backup')
@@ -89,9 +91,9 @@ class RestoreHelper(object):
                     "path":os.path.join(local_dir, _dir)
                 }))
         #在获取OSS上的文件列表
-        ossConf = self.config.oss
-        oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-        fileList = oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
+        # ossConf = self.config.oss
+        # oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+        fileList = self.oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
         self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
         if not len(self.file_obj_list):
@@ -128,7 +130,9 @@ class RestoreHelper(object):
             zip_file =  self.file_obj.path
         else:
             # 从oss下载
-            pass
+            oss_path = f"{self.oss_conf.prefix}{self.task.name}/{self.file_obj['name']}"
+            zip_file = os.path.join(db_filepath, self.file_obj['name'])
+            self.oss.download(oss_path, zip_file)
         print(zip_file,db_filepath)
         # 解压到临时目录
         shutil.unpack_archive(zip_file,db_filepath)
@@ -195,7 +199,7 @@ class RestoreHelper(object):
 if __name__ == '__main__':
     r = RestoreHelper()
     status = 'start'
-    while True:
+    while status != "exit":
         status = getattr(r, status)()
-
+    print("数据恢复程序结束")
 

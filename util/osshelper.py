@@ -2,6 +2,7 @@ import os
 from oss2 import SizedFileAdapter, determine_part_size
 from oss2.models import PartInfo
 import oss2
+import sys
 from util.loghelper import LogHelper
 
 class OssHelper:
@@ -66,6 +67,26 @@ class OssHelper:
 
     def delete(self,obj_name):
         self.bucket.delete_object(obj_name)
+
+    def percentage(self, consumed_bytes, total_bytes):
+        """进度条回调函数，计算当前完成的百分比
+
+        :param consumed_bytes: 已经上传/下载的数据量
+        :param total_bytes: 总数据量
+        """
+        if total_bytes:
+            rate = int(100 * (float(consumed_bytes) / float(total_bytes)))
+            print('\r{0}% '.format(rate))
+            sys.stdout.flush()
+
+    def download(self, ossObject, loaclFile):
+        oss2.resumable_download(self.bucket, ossObject, loaclFile,
+                                store=oss2.ResumableDownloadStore(root='/tmp'),
+                                multiget_threshold=1 * 1024,
+                                part_size=10 * 1024 * 1024,
+                                num_threads=3,
+                                progress_callback= self.percentage
+                                )
 
 if __name__ == '__main__':
     oss = OssHelper('LTAI9ziVIDTcSbW0','fsITkWUPxjfljcS3lEsdZSlGBlGhcN','http://oss-cn-hangzhou.aliyuncs.com','jfjun4test')
