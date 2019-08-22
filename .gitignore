@@ -1,0 +1,8 @@
+config.yml
+log
+archive
+temp
+tmp
+*.pyc
+__pycache__
+.idea
