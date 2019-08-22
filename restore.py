@@ -36,10 +36,15 @@ class RestoreHelper(object):
 
     def check_uri(self):
         # 检查数据库的联通性和权限问题
-        ret = True
-        if ret:
+        print("now is check uri ....")
+        if len(self.uri) < 20:
+            print('the uri connnect failed ,please input again!')
+            return 'wait_uri'
+        client = pymongo.MongoClient(self.uri)
+        try:
+            client.admin.command("ismaster")
             return 'choice_task'
-        else:
+        except Exception as e:
             print('the uri connnect failed ,please input again!')
             return 'wait_uri'
 
@@ -87,23 +92,19 @@ class RestoreHelper(object):
                 self.file_obj_list.append(AttrDict({
                     "name":_dir,
                     "size":os.path.getsize(os.path.join(local_dir, _dir)),
-                    "isLocal":True,
+                    "type":local,
                     "path":os.path.join(local_dir, _dir)
                 }))
-        #在获取OSS上的文件列表
-        # ossConf = self.config.oss
-        # oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
         fileList = self.oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
         self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
         if not len(self.file_obj_list):
             return
         for i, file_obj in enumerate(self.file_obj_list):
-            _local_or_remote = "local" if file_obj["isLocal"] else 'remote'
             # print(
             #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')
             print(
-                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({_local_or_remote})')
+                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({file_obj["type"]})')
         print('-1) return last step')
         return 'choice_file'
 
@@ -126,13 +127,12 @@ class RestoreHelper(object):
             string.ascii_letters + string.digits, 8))
         db_filepath = os.path.join(self.config.tmpPath, _temp_dir)
         print("*"*90,db_filepath)
-        if self.file_obj['isLocal']:
+        if self.file_obj['type'] == "local":
             zip_file =  self.file_obj.path
         else:
             # 从oss下载
             oss_path = f"{self.oss_conf.prefix}{self.task.name}/{self.file_obj['name']}"
             zip_file = os.path.join(db_filepath.replace('./', ''), self.file_obj['name'])
-            print('------------------------------', oss_path, zip_file)
             self.oss.download(oss_path, zip_file)
         print(zip_file,db_filepath)
         # 解压到临时目录
@@ -203,4 +203,5 @@ if __name__ == '__main__':
     while status != "exit":
         status = getattr(r, status)()
     print("数据恢复程序结束")
-
+    # db_filepath = "/root/mongodb-backup-and-restore/./"
+    # print(db_filepath.replace('./', ''))
