@@ -34,7 +34,7 @@ class OssHelper:
 
         total_size = os.path.getsize(filename)
         # determine_part_size方法用来确定分片大小。
-        part_size = determine_part_size(total_size, preferred_size=100 * 1024)
+        part_size = determine_part_size(total_size, preferred_size=10 * 1024 * 1024)
 
         # 初始化分片。
         upload_id = self.bucket.init_multipart_upload(key).upload_id
