@@ -182,12 +182,16 @@ if __name__ == '__main__':
     parser.add_argument('-l', "--loop", action='store_true',
                         help='run as deamon,loop until exit!')
     parser.add_argument('-t', "--task", type=str,
-                        help="backup one task immediately by input name")
+                        help="backup one task immediately by input name, if ? then print all task name")                  
     args = parser.parse_args()
     if args.loop:
         logger.info("start loop all task!")
         loop()
-    if args.task:
+    if args.task == '?':
+        _config = read_config()
+        for task in _config.tasks:
+            print(task.name)
+    elif args.task:
         _config = read_config()
         _task = pydash.find(_config.tasks, lambda x: x.name == args.task)
         if _task is None:
