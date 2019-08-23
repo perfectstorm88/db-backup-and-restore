@@ -22,7 +22,7 @@ class RestoreHelper(object):
         self.file_obj_list = []  # {name:文件名,size:文件大小,type:'local' or 'oss' or 'qinu'}
 
     def start(self):
-        print('welcome to use mongodb backup')
+        print('*******************welcome to use mongodb backup program****************')
         return 'wait_uri'
 
     def wait_uri(self):
