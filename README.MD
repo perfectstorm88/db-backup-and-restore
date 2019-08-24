@@ -9,8 +9,9 @@
   
 # 我的探寻过程
 
-##【阿里云的数据库备份RBS】
-参见官网介绍：[阿里云的数据库备份服务RBS](https://help.aliyun.com/document_detail/59133.html?spm=a2c4g.11186623.6.542.360ed81dKYapLT)
+## 阿里云的数据库备份RBS
+
+详细参见官网介绍：[阿里云的数据库备份服务RBS](https://help.aliyun.com/document_detail/59133.html?spm=a2c4g.11186623.6.542.360ed81dKYapLT)
 
 RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两个致命缺点，一个是贵，另一个是死慢死慢的
 
