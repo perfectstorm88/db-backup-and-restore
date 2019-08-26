@@ -42,10 +42,7 @@ class TimeDecay(object):
 
     @staticmethod
     def time_decay(datetime_list,
-                   options={"days": 6,
-                            "weeks": 3,
-                            "months": 6,
-                            "years": 10},
+                   options,
                    end_time=None,
                    time_format="%Y-%m-%d %H:%M:%S"):
         """
@@ -54,6 +51,11 @@ class TimeDecay(object):
         end_time  表示最新的时间，默认是datetime_list中最大时间
         time_format 
         """
+        if not options:
+            options = {"days": 6,
+                       "weeks": 3,
+                       "months": 6,
+                       "years": 10}
         _ret_temp = {}  # (str_date,datetime),(str,list)
         datetime_list = sorted(datetime_list)  # 按逆序排序
         ret = dict(zip(datetime_list, [None]*len(datetime_list)))

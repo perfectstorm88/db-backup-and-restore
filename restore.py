@@ -25,7 +25,7 @@ class RestoreHelper(object):
 
     def start(self):
         print('*******************welcome to use mongodb backup program****************')
-        return 'wait_uri'
+        return 'choice_task'
 
     def wait_uri(self):
         print('please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test  mongodb://test:test@47.97.22.225:13722/lcz_test1)')
@@ -43,7 +43,7 @@ class RestoreHelper(object):
         client = pymongo.MongoClient(self.uri)
         try:
             client.admin.command("ismaster")
-            return 'choice_task'
+            return 'download_unzip'
         except Exception as e:
             print('the uri connnect failed ,please input again!')
             return 'wait_uri'
@@ -118,14 +118,14 @@ class RestoreHelper(object):
             return 'choice_file'
         else:
             self.file_obj= self.file_obj_list[file_idx]
-            return 'download_unzip'
+            return 'wait_uri'
 
     def download_unzip(self):
         print(self.file_obj)
         # 创建临时目录，执行完毕后再删除
         _temp_dir = ''.join(random.sample(
             string.ascii_letters + string.digits, 8))
-        db_filepath = os.path.join(self.config.tmpPath, _temp_dir)
+        db_filepath = os.path.join(self.config.tmpPath.replace('./', ''), _temp_dir)
         print("*"*90,db_filepath)
         if self.file_obj['type'] == "local":
             zip_file =  self.file_obj.path

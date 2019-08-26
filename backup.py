@@ -15,6 +15,7 @@ import pydash
 import schedule
 from util.osshelper import OssHelper
 from util.attr_dict import AttrDict
+from util.timeDecay import TimeDecay
 
 
 
@@ -79,30 +80,44 @@ def remote_save(localFilePath, config, taskName):
 def backup(task, config):
     db_file = backup_db(task, config)
     remote_save(db_file, config, task.name)
-    clear_old_backup(config, db_file)
+    clear_old_backup(config, db_file, task.name)
 
 
 # 清除旧备份文件
-def clear_old_backup(config, db_file):
+def clear_old_backup(config, db_file, task_name):
     if 'oss' in config:
         # 清除oss旧文件
-        pass
+        ossConf = config.oss
+        oss_spaese = {}
+        for i in ossConf.timeDecay: oss_spaese.update(i.items())
+        if ossConf and oss_spaese:
+            oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+            file_list = oss.get_file_list(os.path.join(ossConf.prefix, task_name))
+            file_name_list = map(lambda x: os.path.basename(x['name']).split(".")[0], file_list)
+            file_dict = TimeDecay.time_decay(file_name_list, oss_spaese, None, '%Y%m%d%H%M%S')
+            for key, value in file_dict.items():
+                if not value: oss.delete(os.path.join(ossConf.prefix, task_name, key + '.zip'));
     if 'local' in config:
-        zip_files = os.listdir(os.path.dirname(db_file))
-        if config.local.sparseStrategy:
-            sparseStrategy = config.local.sparseStrategy
-            for i in sparseStrategy:
-                pass
-        else:
-            #清除本地文件, 默认保留时间是365天
-            expireDays = config.expireDays if config.expireDays else 365
-            for zip_file in zip_files:
-                # 文件创建时间
-                create_time = datetime.datetime.fromtimestamp(os.path.getctime(zip_file))
-                # 计算文件现在的差值
-                diff_days = (datetime.datetime.now() - create_time).days
-                if diff_days > expireDays:
-                    os.remove(zip_file)
+        local_path = os.path.dirname(db_file)
+        zip_files = os.listdir(local_path)
+        local_time_decay = config.local.timeDecay
+        if local_time_decay:
+            local_decay = {}
+            for i in local_time_decay: local_decay.update(i.items()) # 合并时间衰减保存策略 list => dict
+            local_file_name_list = map(lambda x: x.split(".")[0], zip_files)
+            local_file = TimeDecay.time_decay(local_file_name_list, local_decay, None, '%Y%m%d%H%M%S')
+            for key, value in local_file.items():
+                if not value: os.remove(os.path.join(local_path, key + ".zip"))  # 删除value为空的文件
+        # else:
+        #     #清除本地文件, 默认保留时间是365天
+        #     expireDays = config.expireDays if config.expireDays else 365
+        #     for zip_file in zip_files:
+        #         # 文件创建时间
+        #         create_time = datetime.datetime.fromtimestamp(os.path.getctime(zip_file))
+        #         # 计算文件现在的差值
+        #         diff_days = (datetime.datetime.now() - create_time).days
+        #         if diff_days > expireDays:
+        #             os.remove(zip_file)
     else:  # 没有配置local，表示不进行本地存档
         os.remove(db_file)
 
@@ -214,3 +229,4 @@ if __name__ == '__main__':
         start(_task, _config)
     else:
         parser.print_help()
+
