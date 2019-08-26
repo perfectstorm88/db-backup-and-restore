@@ -64,7 +64,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - choice_task: 选择一个备份任务（在config.tasks中配置）
 - choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
 
-![数据库恢复执行逻辑的有限状态机](./doc/数据库恢复执行逻辑的有限状态机.jpg)
+![数据库恢复执行逻辑有限状态机](doc/数据库恢复执行逻辑有限状态机.jpg)
 
 # quickstart
 
@@ -99,5 +99,34 @@ python backup.py -t mongo_my_test1
 python restore.py 
 ```
 
-# 详细参数说明
+## 引导步骤说明
+#### 选择备份任务（任务名称是在config.yml中配置） 
+###### 选择输入任务序号 
+```bash
+now is check uri ....
+please choice the task to restore
+0) mongo_lcz_test1
+1) mongo_lcz_test2
+2) mongo_lcz_test3
+3) mongo_mg_test2
+-1) return last step
+(choice task)-> 
+```  
+#### 选择数据源文件  
+```bash
+please choice the following file to restore
+ 0) 20190821104934.gz 2.273 KB  (oss)
+ 1) 20190821110854.gz 2.273 KB  (oss)
+ 2) 20190821110910.gz 2.273 KB  (oss)
+-1) return last step
+(choice task)->
+```
+#### 输入需要目标数据库地址  
+```bash  
+*******************welcome to use mongodb backup program****************
+please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test  mongodb://test:test@47.97.22.225:13722/lcz_test1)  
+(uri）->   
+```
+###### 输入uri之后会对连通性进行验证，连接成功则会进入下一步，失败会提示继续输入正确的uri 
 
+#### 下载数据， 恢复数据
