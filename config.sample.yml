@@ -10,20 +10,24 @@ oss:
   # number of backups to keep locally
   expireDays: 730
   retention: 14
-  sparseStrategy:
-    - byMonth: 2 # 如果超过2个月，每个月只保留一份
-    - byYear: 2 # 如果超过2年，每年只保留一份
+  timeDecay:
+    - months: 6 # 如果超过2个月后，每个月只保留一份
+    - years: 10 # 如果超过2年后，每年只保留一份
+    - days: 6
+    - weeks: 3
 
 # 存放到本地,存放目录 {path}/{task.name}/
 local:
   # number of backups to keep locally
   expireDays: 730
   retention: 10   # 与expireDays
-  sparseStrategy: # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
+  timeDecay: # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
     # - byDay: 1 # 如果超过1天，每个天只保留一份
     # - byWeek: 1 # 如果超过1周，每个周只保留一份
-    - byMonth: 2 # 如果超过2个月后，每个月只保留一份
-    - byYear: 2 # 如果超过2年后，每年只保留一份
+    - months: 6 # 如果超过2个月后，每个月只保留一份
+    - years: 10 # 如果超过2年后，每年只保留一份
+    - days: 6
+    - weeks: 3
 
 tasks:
   - name: 'mongo_lcz_test1'
