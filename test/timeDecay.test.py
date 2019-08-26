@@ -1,9 +1,3 @@
-"""
-"days": 6,   最近6天，每天保存一份
-"weeks": 3,  最近3周，每周保存一份
-"months": 6, 最近6个月，每月保存一份
-"years": 5,  最近5年，每年保存一份
-"""
 import datetime
 import unittest
 import json
