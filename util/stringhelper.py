@@ -3,6 +3,7 @@ import random
 import math
 import urllib.parse
 class StringHelper(object):
+    
     @staticmethod
     def get_random_num(length=7):
         return str(random.random() * math.pow(10,length)).split('.')[0]
