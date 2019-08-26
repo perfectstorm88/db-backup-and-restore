@@ -2,6 +2,7 @@ import os
 from oss2 import SizedFileAdapter, determine_part_size
 from oss2.models import PartInfo
 import oss2
+import sys
 
 class OssHelper:
 
@@ -16,8 +17,7 @@ class OssHelper:
             result.append({
                 "name":os.path.basename(ossObject.key),
                 "size":ossObject.size,
-                "isLocal":False
-
+                "type":"oss"
             })
         return result
         # return [ for b in oss2.ObjectIterator(self.bucket,prefix=dir)]
@@ -32,7 +32,7 @@ class OssHelper:
 
         total_size = os.path.getsize(filename)
         # determine_part_size方法用来确定分片大小。
-        part_size = determine_part_size(total_size, preferred_size=100 * 1024)
+        part_size = determine_part_size(total_size, preferred_size=10 * 1024 * 1024)
 
         # 初始化分片。
         upload_id = self.bucket.init_multipart_upload(key).upload_id
@@ -65,6 +65,26 @@ class OssHelper:
 
     def delete(self,obj_name):
         self.bucket.delete_object(obj_name)
+
+    def percentage(self, consumed_bytes, total_bytes):
+        """进度条回调函数，计算当前完成的百分比
+
+        :param consumed_bytes: 已经上传/下载的数据量
+        :param total_bytes: 总数据量
+        """
+        if total_bytes:
+            rate = int(100 * (float(consumed_bytes) / float(total_bytes)))
+            print('\r{0}% '.format(rate))
+            sys.stdout.flush()
+
+    def download(self, ossObject, loaclFile):
+        oss2.resumable_download(self.bucket, ossObject, loaclFile,
+                                store=oss2.ResumableDownloadStore(root=os.path.dirname(loaclFile)),
+                                multiget_threshold=1 * 1024,
+                                part_size=10 * 1024 * 1024,
+                                num_threads=3,
+                                progress_callback= self.percentage
+                                )
 
 if __name__ == '__main__':
     oss = OssHelper('LTAI9ziVIDTcSbW0','fsITkWUPxjfljcS3lEsdZSlGBlGhcN','http://oss-cn-hangzhou.aliyuncs.com','jfjun4test')

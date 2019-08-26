@@ -20,6 +20,8 @@ class RestoreHelper(object):
         self.task = None
         self.file_obj= None
         self.file_obj_list = []  # {name:文件名,size:文件大小,type:'local' or 'oss' or 'qinu'}
+        self.oss_conf = self.config.oss
+        self.oss = OssHelper(self.oss_conf.accessKey, self.oss_conf.secretKey, self.oss_conf.url, self.oss_conf.bucket)
 
     def start(self):
         print('*******************welcome to use mongodb backup program****************')
@@ -34,10 +36,15 @@ class RestoreHelper(object):
 
     def check_uri(self):
         # 检查数据库的联通性和权限问题
-        ret = True
-        if ret:
+        print("now is check uri ....")
+        if len(self.uri) < 20:
+            print('the uri connnect failed ,please input again!')
+            return 'wait_uri'
+        client = pymongo.MongoClient(self.uri)
+        try:
+            client.admin.command("ismaster")
             return 'choice_task'
-        else:
+        except Exception as e:
             print('the uri connnect failed ,please input again!')
             return 'wait_uri'
 
@@ -85,23 +92,19 @@ class RestoreHelper(object):
                 self.file_obj_list.append(AttrDict({
                     "name":_dir,
                     "size":os.path.getsize(os.path.join(local_dir, _dir)),
-                    "isLocal":True,
+                    "type":"local",
                     "path":os.path.join(local_dir, _dir)
                 }))
-        #在获取OSS上的文件列表
-        ossConf = self.config.oss
-        oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-        fileList = oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
+        fileList = self.oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
         self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
         if not len(self.file_obj_list):
             return
         for i, file_obj in enumerate(self.file_obj_list):
-            _local_or_remote = "local" if file_obj["isLocal"] else 'remote'
             # print(
             #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')
             print(
-                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({_local_or_remote})')
+                f' {i}) {file_obj["name"]} {self.get_size(file_obj["size"])}  ({file_obj["type"]})')
         print('-1) return last step')
         return 'choice_file'
 
@@ -110,7 +113,7 @@ class RestoreHelper(object):
         file_idx = int(file_idx)
         if file_idx < 0:
             return 'choice_task'
-        elif file_idx >= len(self.config.tasks):
+        elif file_idx >= len(self.file_obj_list):
             print('the index no exist,print input  again!')
             return 'choice_file'
         else:
@@ -124,11 +127,13 @@ class RestoreHelper(object):
             string.ascii_letters + string.digits, 8))
         db_filepath = os.path.join(self.config.tmpPath, _temp_dir)
         print("*"*90,db_filepath)
-        if self.file_obj['isLocal']:
+        if self.file_obj['type'] == "local":
             zip_file =  self.file_obj.path
         else:
             # 从oss下载
-            pass
+            oss_path = f"{self.oss_conf.prefix}{self.task.name}/{self.file_obj['name']}"
+            zip_file = os.path.join(db_filepath.replace('./', ''), self.file_obj['name'])
+            self.oss.download(oss_path, zip_file)
         print(zip_file,db_filepath)
         # 解压到临时目录
         shutil.unpack_archive(zip_file,db_filepath)
@@ -166,7 +171,7 @@ class RestoreHelper(object):
             status = -1
         status = proc.returncode
         if status != 0:
-            print(f'恢复数据库{0}出错,结果为,执行的命令为{1}'.format(task['name'],cmd))
+            print(f'恢复数据库{0}出错,结果为,执行的命令为{1}'.format(self.task['name'],cmd))
             return 'exit'
         else:
             # 删除原始目录
@@ -195,7 +200,8 @@ class RestoreHelper(object):
 if __name__ == '__main__':
     r = RestoreHelper()
     status = 'start'
-    while True:
+    while status != "exit":
         status = getattr(r, status)()
-
-
+    print("数据恢复程序结束")
+    # db_filepath = "/root/mongodb-backup-and-restore/./"
+    # print(db_filepath.replace('./', ''))
