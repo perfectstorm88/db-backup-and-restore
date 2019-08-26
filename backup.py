@@ -17,6 +17,7 @@ from util.osshelper import OssHelper
 from util.attr_dict import AttrDict
 
 
+
 # 简单实用的小例子，同时输出为console和文件
 log_file = os.path.join(os.path.dirname(__file__), 'log', 'output.log')
 if not os.path.exists(os.path.dirname(log_file)):
@@ -87,8 +88,21 @@ def clear_old_backup(config, db_file):
         # 清除oss旧文件
         pass
     if 'local' in config:
-        pass
-        # 清除本地文件
+        zip_files = os.listdir(os.path.dirname(db_file))
+        if config.local.sparseStrategy:
+            sparseStrategy = config.local.sparseStrategy
+            for i in sparseStrategy:
+                pass
+        else:
+            #清除本地文件, 默认保留时间是365天
+            expireDays = config.expireDays if config.expireDays else 365
+            for zip_file in zip_files:
+                # 文件创建时间
+                create_time = datetime.datetime.fromtimestamp(os.path.getctime(zip_file))
+                # 计算文件现在的差值
+                diff_days = (datetime.datetime.now() - create_time).days
+                if diff_days > expireDays:
+                    os.remove(zip_file)
     else:  # 没有配置local，表示不进行本地存档
         os.remove(db_file)
 
@@ -176,13 +190,12 @@ def loop():
 
 
 if __name__ == '__main__':
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', "--loop", action='store_true',
                         help='run as deamon,loop until exit!')
     parser.add_argument('-t', "--task", type=str,
-                        help="backup one task immediately by input name, if ? then print all task name")                  
+                        help="backup one task immediately by input name, if ? then print all task name")
     args = parser.parse_args()
     if args.loop:
         logger.info("start loop all task!")
