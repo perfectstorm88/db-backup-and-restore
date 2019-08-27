@@ -100,7 +100,8 @@ class RestoreHelper(object):
         self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
         if not len(self.file_obj_list):
-            return
+            print(f'task:{self.task.name} has  no data to restore, please re-select the task')
+            return 'choice_task'
         for i, file_obj in enumerate(self.file_obj_list):
             # print(
             #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')
@@ -172,7 +173,7 @@ class RestoreHelper(object):
             status = -1
         status = proc.returncode
         if status != 0:
-            print(f'恢复数据库{0}出错,结果为,执行的命令为{1}'.format(self.task['name'],cmd))
+            print(f'恢复数据库{self.task.name}出错,结果为,执行的命令为{cmd}')
             return 'exit'
         else:
             # 删除原始目录
