@@ -113,6 +113,39 @@ python restore.py
 ```
 
 ### 引导步骤说明
+```markdown
+/anaconda3/python.app/Contents/MacOS/python /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/restore.py
+2019-08-27 15:06:45,703 DEBUG Init oss bucket, endpoint: http://oss-cn-hangzhou.aliyuncs.com, isCname: False, connect_timeout: None, app_name: , enabled_crc: True
+*******************welcome to use mongodb backup program****************
+please choice the task to restore   ---选择备份任务（任务名称是在config.yml中配置） 
+0) mongo_lcz_test1
+1) mongo_lcz_test2
+-1) return last step
+(choice task)->0
+please choice the following file to restore     ---选择数据源文件
+ 0) 20190721104934.zip 2.273 KB  (local)
+ 1) 20190421104934.zip 2.273 KB  (local)
+ 2) 20190821104934.gz 2.273 KB  (oss)
+ 3) 20190821110854.gz 2.273 KB  (oss)
+-1) return last step
+(choice task)->0
+please input the destination db uri,format is [scheme://][user[:[password]]@]host[:port][/schema][?attribute1=value1&attribute2=value2(such as mongodb://test:test@localhost:13722/test)
+(uri)->mongodb://test:test@47.97.22.225:13722/lcz_test1     ---输入需要目标数据库地址
+now is check uri ....
+mongorestore  --dir=/Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1 --host=47.97.22.225 --port=13722 --username=test --password=test --db=lcz_test1 --drop
+b'2019-08-27T15:07:00.320+0800\tthe --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead\n'
+b'2019-08-27T15:07:00.320+0800\tbuilding a list of collections to restore from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1 dir\n'
+b'2019-08-27T15:07:00.888+0800\treading metadata for lcz_test1.5d0c9b210223a94a2dee9494_1 from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/5d0c9b210223a94a2dee9494_1.metadata.json\n'
+b'2019-08-27T15:07:00.996+0800\trestoring lcz_test1.basicInfo from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/basicInfo.bson\n'
+b'2019-08-27T15:07:00.998+0800\tno indexes to restore\n'
+b'2019-08-27T15:07:00.998+0800\tfinished restoring lcz_test1.basicInfo (0 documents)\n'
+b'2019-08-27T15:07:01.314+0800\trestoring lcz_test1.5d0c9b210223a94a2dee9494_1 from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/5d0c9b210223a94a2dee9494_1.bson\n'
+b'2019-08-27T15:07:01.338+0800\tno indexes to restore\n'
+b'2019-08-27T15:07:01.338+0800\tfinished restoring lcz_test1.undefined_2 (4 documents)\n'
+b'2019-08-27T15:07:01.338+0800\tdone\n'
+b''
+数据恢复程序结束
+```
 
 #### 选择备份任务（任务名称是在config.yml中配置） 
 
@@ -143,6 +176,5 @@ please choice the following file to restore
 please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test)  
 (uri）->   
 ```
-#### 输入uri之后会对连通性进行验证，连接成功则会进入下一步，失败会提示继续输入正确的uri 
 
 #### 下载数据，解压缩，恢复数据
