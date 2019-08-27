@@ -28,7 +28,8 @@ class RestoreHelper(object):
         return 'choice_task'
 
     def wait_uri(self):
-        print('please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test  mongodb://test:test@47.97.22.225:13722/lcz_test1)')
+        # uri format  [Uniform Resource Identifier (URI): Generic Syntax](https://tools.ietf.org/html/rfc3986)
+        print('please input the destination db uri,format is [scheme://][user[:[password]]@]host[:port][/schema][?attribute1=value1&attribute2=value2(such as mongodb://test:test@localhost:13722/test)')
         self.uri = input('(uri)->').strip()
         if len(self.uri) == 0:
             return 'wait_uri'
