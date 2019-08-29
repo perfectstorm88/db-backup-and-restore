@@ -1,6 +1,6 @@
 
 
-数据库的备份和恢复是很古老的话题了，但是现有的方案没找到顺手的，没办法只能重新发明轮子了
+**一种既便捷又超便宜的数据库(MySQL、MongoDB)备份与恢复方案**：数据库的备份和恢复是很古老的话题了，但是现有的方案没找到顺手的，没办法只能重新发明轮子了
 
 - [1.我的需求场景](#1%e6%88%91%e7%9a%84%e9%9c%80%e6%b1%82%e5%9c%ba%e6%99%af)
 - [2.我的探寻过程](#2%e6%88%91%e7%9a%84%e6%8e%a2%e5%af%bb%e8%bf%87%e7%a8%8b)
@@ -163,8 +163,8 @@ please choice the following file to restore
 (choice task)->0
 # 【输入】输入目标数据库的uri
 please input the destination db uri,format is [scheme://][user[:[password]]@]host[:port][/schema][?attribute1=value1&attribute2=value2]
-(such as mysql://root:123456@47.99.73.225/db1)  
-(uri)->mysql://root:123456@47.99.73.225/db2
+(such as mysql://root:123456@127.0.0.1/db1)  
+(uri)->mysql://root:123456@127.0.0.1/db2
 # 检查uri格式
 now is check uri ....                            
 # 解压缩zip文件
@@ -216,19 +216,19 @@ tasks:
     # "monday 03:21" # 每周一 03:21执行
     schedule: "day 13:15" # 每天 13:15执行
     params:  # 通过mongodump执行的参数
-      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
+      # uri: "mongodb://test:test@127.0.0.1:13722/lcz_test1"
       d: lcz_test1
       u: test
       p: test
-      h: 47.97.22.225:13722
+      h: 127.0.0.1:13722
 
   - name: 'mysql_db1'
     type: 'mysql'
     schedule: "day :00"  # 每周
     params:  # 通过mysqldumap执行的参数
-      # uri: "mysql://root:123456@47.99.73.225/db1"
+      # uri: "mysql://root:123456@127.0.0.1/db1"
       u: "root"
       p: "123456"
       databases: "db1"
-      host: "47.99.73.225"
+      host: "127.0.0.1"
 ```
