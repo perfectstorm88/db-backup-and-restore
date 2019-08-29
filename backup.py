@@ -1,5 +1,5 @@
 """
-mongodb backup and restore
+db backup
 """
 import os
 import sys
@@ -16,8 +16,8 @@ import schedule
 from util.osshelper import OssHelper
 from util.attr_dict import AttrDict
 from util.timeDecay import TimeDecay
-
-
+from util.mongodbHelper import MongodbHelper
+from util.mysqlHelper import MysqlHelper
 
 # 简单实用的小例子，同时输出为console和文件
 log_file = os.path.join(os.path.dirname(__file__), 'log', 'output.log')
@@ -96,7 +96,7 @@ def clear_old_backup(config, db_file, task_name):
             file_name_list = map(lambda x: os.path.basename(x['name']).split(".")[0], file_list)
             file_dict = TimeDecay.time_decay(file_name_list, oss_spaese, None, '%Y%m%d%H%M%S')
             for key, value in file_dict.items():
-                if not value: oss.delete(os.path.join(ossConf.prefix, task_name, key + '.zip'));
+                if not value: oss.delete(os.path.join(ossConf.prefix, task_name, key + '.zip'))
     if 'local' in config:
         local_path = os.path.dirname(db_file)
         zip_files = os.listdir(local_path)
@@ -126,49 +126,14 @@ def clear_old_backup(config, db_file, task_name):
 
 def backup_db(task, config):
     db_type = task['type']
-    db_file = None
     if db_type == 'mongodb':
-        db_file = backup_db_mongodb(task, config)
+        db_file = MongodbHelper.backup(task.params, task['name'],config.tmpPath,config.archivePath)
+    elif db_type == 'mysql':
+        db_file = MysqlHelper.backup(task.params, task['name'],config.tmpPath,config.archivePath)
     else:
         raise Exception(f"unsupported db_type [{db_type}]")
 
     return db_file
-
-
-def backup_db_mongodb(task, config):
-    _temp_dir = ''.join(random.sample(
-        string.ascii_letters + string.digits, 8))
-    db_filepath = os.path.join(config.tmpPath, _temp_dir)
-    os.makedirs(db_filepath)
-    cmd = 'mongodump '
-    for (k, v) in task.params.items():
-        cmd += ('--' if len(k) > 1 else '-')
-        cmd += f'{k}={v} '
-
-    cmd += f' --out={db_filepath}'
-    logger.info(f'start exec cmd: {cmd}')
-    archive_type = 'zip'
-    status = 0
-    proc = subprocess.Popen(
-        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    while True:
-        buff = proc.stdout.readline()
-        logger.debug(buff)
-        if proc.poll() is not None:
-            break
-
-    status = proc.returncode
-    if status != 0:
-        logger.info(f'backup failed, task.name: {task["name"]},cmd: {cmd}')
-        return None
-    # 获得db_filepath下的子目录，作为数据库名称
-    zip_file = os.path.join(
-        config.archivePath, task['name'], get_datestr())
-    zip_file = shutil.make_archive(zip_file, archive_type, db_filepath)
-
-    # 删除原始目录
-    shutil.rmtree(db_filepath)
-    return zip_file
 
 
 def start(task, config):

@@ -2,8 +2,13 @@ import time
 import random
 import math
 import urllib.parse
+import datetime
 class StringHelper(object):
     
+    @staticmethod
+    def get_datestr():
+        return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
     @staticmethod
     def get_random_num(length=7):
         return str(random.random() * math.pow(10,length)).split('.')[0]

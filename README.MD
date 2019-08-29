@@ -21,7 +21,7 @@
 RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两个致命缺点，一个是贵，另一个是死慢死慢的
 
 第一点：贵，RBS是按备份数据量收费的，而备份数据量如下所示，“通过备份链路的实际数据大小”，跟你每个月执行备份的次数有关。如果我有50G数据，每天备份一次，每个月就要1000多块钱，另外备份存储也要单独收费
-![阿里云RBM中的数据量定义](./doc/阿里云RBM中的数据量定义.jpg)
+![阿里云RBM中的数据量定义](http://img.lichangzhen.top/2019/dbbr阿里云RBM中的数据量定义.jpg)
 
 第二点:最不能忍受，恢复数据执行起来死慢死慢的，我做了个测试，总共50M数据文件，RBS恢复了2个小时还没有执行完，这么点数据量用mongorestore，几秒钟就可以执行完。
 
@@ -43,7 +43,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - 备份程序：常驻进程，周期性执行备份任务，备份文件保存在本地或者上传到云存储(如阿里云、七牛、腾讯云等)。
 - 恢复程序：单次执行，通过引导步骤傻瓜式操作，简单易上手
 
-![数据库备份和恢复流程](./doc/数据库备份和恢复流程.jpg)
+![数据库备份和恢复流程](http://img.lichangzhen.top/2019/dbbr数据库备份和恢复流程.jpg)
 
 【基于时间衰减的备份存储策略】
 备份存储的时间衰减策略： 越近的数据越重要，保存的时间间隔越小，份数越多；越老的数据重要性越小，保存的时间间隔越大，份数越少
@@ -54,14 +54,14 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - `"months": 6`, 最近6个月，每月保存一份
 - `"years": 5`,  最近5年，每年保存一份，超过5年以上就不保留备份了
 
-![基于时间衰减的备份存储策略](./doc/稀疏备份策略.jpg)
+![基于时间衰减的备份存储策略](http://img.lichangzhen.top/2019/dbbr稀疏备份策略.jpg)
 
 
 
 比如5年的历史数据，备份数= 6 + 3 + 6 + 5 = 20
 
 以每个备份20G的存储大小为例，20G*20份==400G，购买一个500G的归档型存储包，每年的存储费用为135元，算是非常便宜的方案了（参加 [阿里云产品定价-对象存储OSS](https://www.aliyun.com/price/product?spm=a2c4g.11186623.2.13.5a9c7b554eTNZ0#/oss/detail)）
-![阿里云产品定价-对象存储OSS-存档存储包](./doc/阿里云产品定价-对象存储OSS-存档存储包.jpg)
+![阿里云产品定价-对象存储OSS-存档存储包](http://img.lichangzhen.top/2019/dbbr阿里云产品定价-对象存储OSS-存档存储包.jpg)
 
 
 【恢复程序】的执行逻辑如下面有限状态机所示，用户只需要根据引导输入3个指令即可完成一个恢复：
@@ -69,14 +69,24 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - input_uri: 输入目标数据库的uri
 - choice_task: 选择一个备份任务（在config.tasks中配置）
 - choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
-
 ![数据库恢复执行逻辑有限状态机](doc/数据库恢复执行逻辑有限状态机.jpg)
 
 # quickstart
 
-运行条件：`python3.6版本以上`
+运行条件：
 
-## 配置config.yml，定义一个备份任务
+- `python3.6版本以上`
+- 如果是mongodb，需要预安装mongodump和mongorestore命令
+- 如果是mysql，需要预安装mysql客户端
+
+## 下载工程
+```
+git clone https://github.com/perfectstorm88/db-backup-and-restore
+cd db-backup-and-restore
+pip install -r requirements.txt
+cp config.sample.yml config.yml
+```
+## 配置config.yml，定义第一个备份任务
 
 最简单的样例如下：
 ```yml
@@ -112,69 +122,91 @@ python backup.py -t mongo_my_test1
 python restore.py 
 ```
 
-### 引导步骤说明
-```markdown
-/anaconda3/python.app/Contents/MacOS/python /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/restore.py
-2019-08-27 15:06:45,703 DEBUG Init oss bucket, endpoint: http://oss-cn-hangzhou.aliyuncs.com, isCname: False, connect_timeout: None, app_name: , enabled_crc: True
-*******************welcome to use mongodb backup program****************
-please choice the task to restore   ---选择备份任务（任务名称是在config.yml中配置） 
+
+![数据库恢复执行逻辑有限状态机](doc/数据库恢复执行逻辑有限状态机.jpg)
+### 数据恢复执行样例
+python restore.py
+```bash
+*******************welcome to use database restore program****************
+# 【输入】选择一个备份任务（任务名称是在config.yml )
+please choice the task to restore  
 0) mongo_lcz_test1
-1) mongo_lcz_test2
+1) mysql_db1
+-1) return last step
+(choice task)->1
+# 【输入】选择一个数据源文件
+please choice the following file to restore  
+ 0) 20190829150621.zip 232.100 KB  (local)
 -1) return last step
 (choice task)->0
-please choice the following file to restore     ---选择数据源文件
- 0) 20190721104934.zip 2.273 KB  (local)
- 1) 20190421104934.zip 2.273 KB  (local)
- 2) 20190821104934.gz 2.273 KB  (oss)
- 3) 20190821110854.gz 2.273 KB  (oss)
--1) return last step
-(choice task)->0
-please input the destination db uri,format is [scheme://][user[:[password]]@]host[:port][/schema][?attribute1=value1&attribute2=value2(such as mongodb://test:test@localhost:13722/test)
-(uri)->mongodb://test:test@47.97.22.225:13722/lcz_test1     ---输入需要目标数据库地址
-now is check uri ....
-mongorestore  --dir=/Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1 --host=47.97.22.225 --port=13722 --username=test --password=test --db=lcz_test1 --drop
-b'2019-08-27T15:07:00.320+0800\tthe --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead\n'
-b'2019-08-27T15:07:00.320+0800\tbuilding a list of collections to restore from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1 dir\n'
-b'2019-08-27T15:07:00.888+0800\treading metadata for lcz_test1.5d0c9b210223a94a2dee9494_1 from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/5d0c9b210223a94a2dee9494_1.metadata.json\n'
-b'2019-08-27T15:07:00.996+0800\trestoring lcz_test1.basicInfo from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/basicInfo.bson\n'
-b'2019-08-27T15:07:00.998+0800\tno indexes to restore\n'
-b'2019-08-27T15:07:00.998+0800\tfinished restoring lcz_test1.basicInfo (0 documents)\n'
-b'2019-08-27T15:07:01.314+0800\trestoring lcz_test1.5d0c9b210223a94a2dee9494_1 from /Users/luxiaofei/Desktop/lingxi/mongodb-backup-and-restore/temp/2nlxuZLB/lcz_test1/5d0c9b210223a94a2dee9494_1.bson\n'
-b'2019-08-27T15:07:01.338+0800\tno indexes to restore\n'
-b'2019-08-27T15:07:01.338+0800\tfinished restoring lcz_test1.undefined_2 (4 documents)\n'
-b'2019-08-27T15:07:01.338+0800\tdone\n'
-b''
-数据恢复程序结束
+# 【输入】输入目标数据库的uri
+please input the destination db uri,format is [scheme://][user[:[password]]@]host[:port][/schema][?attribute1=value1&attribute2=value2]
+(such as mysql://root:123456@47.99.73.225/db1)  
+(uri)->mysql://root:123456@47.99.73.225/db2
+# 检查uri格式
+now is check uri ....                            
+# 解压缩zip文件
+unzip file:/root/db-backup-and-restore/./archive/mysql_db1/20190829150621.zip 
+# 执行数据库恢复命令
+2019-08-29 16:13:57,833 INFO start exec restore cmd: mysql  -uroot -p123456 -h47.99.73.225 db2 < /root/db-backup-and-restore/temp/uIZ3XfhB/back.sql
+2019-08-29 16:13:57,857 DEBUG mysql: [Warningder] Using a password on the command line interface can be insecure.
+2019-08-29 16:14:01,041 DEBUG b
+process exit
 ```
 
-#### 选择备份任务（任务名称是在config.yml中配置） 
 
-```bash
-please choice the task to restore
-1) mongo_lcz_test1
-2) mongo_lcz_test2
-3) mongo_lcz_test3
-4) mongo_mg_test2
--1) return last step
-(choice task)-> 
-```  
+# 配置参数详解
+```yml
+tmpPath: './temp'
+archivePath: './archive'
+# oss:  # 存储到OSS
+#   url: "http://oss-cn-hangzhou.aliyuncs.com"
+#   bucket: "jfjun4test"
+#   accessKey: "accessKey"
+#   secretKey: "secretKey"
+#   prefix: 'backup/'  # oss中的存储根路径
+#   # 存储策略，只有一个起作用，优先级timeDecay>retention>expireDays，
+#   expireDays: 730  # 最大保存天数
+#   retention: 14    # 最大保留分数
+#   timeDecay:
+#     - months: 6 # 如果超过2个月后，每个月只保留一份
+#     - years: 10 # 如果超过2年后，每年只保留一份
+#     - days: 6
+#     - weeks: 3
 
-#### 选择数据源文件 
+# 存放到本地,存放目录 {archivePath}/{task.name}/
+local:
+  # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
+  expireDays: 730  # 最大保存天数
+  retention: 10    # 最大保留份数
+  timeDecay:   # 时间衰减保存策略
+    days: 6,   # 最近6天，每天保存一份
+    weeks: 3,  # 最近3周，每周保存一份
+    months: 6, # 最近6个月，每月保存一份
+    years: 5,  # 最近5年，每年保存一份，超过5年以上就不保留备份了
 
-```bash
-please choice the following file to restore
- 0) 20190821104934.gz 2.273 KB  (oss)
- 1) 20190821110854.gz 2.273 KB  (oss)
- 2) 20190821110910.gz 2.273 KB  (oss)
--1) return last step
-(choice task)->
+tasks:
+  - name: 'mongo_lcz_test1'
+    type: 'mongodb'
+    # schedule表示执行时间策略
+    # "day 03:21" # 每天 03:21执行
+    # "hour :31" # 每小时 31分执行
+    # "monday 03:21" # 每周一 03:21执行
+    schedule: "day 13:15" # 每天 13:15执行
+    params:  # 通过mongodump执行的参数
+      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
+      d: lcz_test1
+      u: test
+      p: test
+      h: 47.97.22.225:13722
+
+  - name: 'mysql_db1'
+    type: 'mysql'
+    schedule: "day :00"  # 每周
+    params:  # 通过mysqldumap执行的参数
+      # uri: "mysql://root:123456@47.99.73.225/db1"
+      u: "root"
+      p: "123456"
+      databases: "db1"
+      host: "47.99.73.225"
 ```
-
-#### 输入需要目标数据库地址 
-
-```bash  
-please input the dest db uri(such as mongodb://usename:password@127.0.0.1:27017/test)  
-(uri）->   
-```
-
-#### 下载数据，解压缩，恢复数据

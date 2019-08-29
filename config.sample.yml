@@ -1,37 +1,38 @@
-# 存放到OSS
 tmpPath: './temp'
 archivePath: './archive'
-oss:
-  url: "http://oss-cn-hangzhou.aliyuncs.com"
-  bucket: "jfjun4test"
-  accessKey: "LTAI9ziVIDTcSbW0"
-  secretKey: "fsITkWUPxjfljcS3lEsdZSlGBlGhcN"
-  prefix: 'backup/'
-  # number of backups to keep locally
-  expireDays: 730
-  retention: 14
-  timeDecay:
-    - months: 6 # 如果超过2个月后，每个月只保留一份
-    - years: 10 # 如果超过2年后，每年只保留一份
-    - days: 6
-    - weeks: 3
+# oss:  # 存储到OSS
+#   url: "http://oss-cn-hangzhou.aliyuncs.com"
+#   bucket: "jfjun4test"
+#   accessKey: "accessKey"
+#   secretKey: "secretKey"
+#   prefix: 'backup/'  # oss中的存储根路径
+#   # 存储策略，只有一个起作用，优先级timeDecay>retention>expireDays，
+#   expireDays: 730  # 最大保存天数
+#   retention: 14    # 最大保留分数
+#   timeDecay:
+#     - months: 6 # 如果超过2个月后，每个月只保留一份
+#     - years: 10 # 如果超过2年后，每年只保留一份
+#     - days: 6
+#     - weeks: 3
 
-# 存放到本地,存放目录 {path}/{task.name}/
+# 存放到本地,存放目录 {archivePath}/{task.name}/
 local:
-  # number of backups to keep locally
-  expireDays: 730
-  retention: 10   # 与expireDays
-  timeDecay: # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
-    # - byDay: 1 # 如果超过1天，每个天只保留一份
-    # - byWeek: 1 # 如果超过1周，每个周只保留一份
-    - months: 6 # 如果超过2个月后，每个月只保留一份
-    - years: 10 # 如果超过2年后，每年只保留一份
-    - days: 6
-    - weeks: 3
+  # 稀疏策略，如果配置了稀疏策略，则retention失效，expireDays失效
+  expireDays: 730  # 最大保存天数
+  retention: 10    # 最大保留份数
+  timeDecay:   # 时间衰减保存策略
+    days: 6,   # 最近6天，每天保存一份
+    weeks: 3,  # 最近3周，每周保存一份
+    months: 6, # 最近6个月，每月保存一份
+    years: 5,  # 最近5年，每年保存一份，超过5年以上就不保留备份了
 
 tasks:
   - name: 'mongo_lcz_test1'
     type: 'mongodb'
+    # schedule表示执行时间策略
+    # "day 03:21" # 每天 03:21执行
+    # "hour :31" # 每小时 31分执行
+    # "monday 03:21" # 每周一 03:21执行
     schedule: "day 13:15" # 每天 13:15执行
     params:  # 通过mongodump执行的参数
       # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
@@ -40,37 +41,12 @@ tasks:
       p: test
       h: 47.97.22.225:13722
 
-  - name: 'mongo_lcz_test2'
-    type: 'mongodb'
-    schedule: "hour :31" # 每小时 at :31执行
-    params:  # 通过mongodump执行的参数
-      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
-      d: lcz_test1
-      u: test
-      p: test
-      h: 47.97.22.225:13722
-
-  - name: 'mongo_lcz_test3'
-    type: 'mongodb'
-    schedule: "hour :21" # 每天 13:15执行
-    params:  # 通过mongodump执行的参数
-      # uri: "mongodb://test:test@47.97.22.225:13722/lcz_test1"
-      d: lcz_test1
-      u: test
-      p: test
-      h: 47.97.22.225:13722
-
-  - name: 'mongo_mg_test2'
-    type: 'mongodb'
-    schedule: "hour :00"  # 每周
-    params:  # 通过mongodump执行的参数
-      uri: "mongodb://jfjun:lingxi88_c7ced87e@47.97.22.225:23717/jfjun_szjy2"
-
-
-  
-
-  
-  
-
-
-
+  - name: 'mysql_db1'
+    type: 'mysql'
+    schedule: "day :00"  # 每周
+    params:  # 通过mysqldumap执行的参数
+      # uri: "mysql://root:123456@47.99.73.225/db1"
+      u: "root"
+      p: "123456"
+      databases: "db1"
+      host: "47.99.73.225"
