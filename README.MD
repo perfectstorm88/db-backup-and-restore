@@ -1,7 +1,24 @@
 
+
 数据库的备份和恢复是很古老的话题了，但是现有的方案没找到顺手的，没办法只能重新发明轮子了
 
-# 我的需求场景
+- [1.我的需求场景](#1%e6%88%91%e7%9a%84%e9%9c%80%e6%b1%82%e5%9c%ba%e6%99%af)
+- [2.我的探寻过程](#2%e6%88%91%e7%9a%84%e6%8e%a2%e5%af%bb%e8%bf%87%e7%a8%8b)
+  - [2.1.阿里云的数据库备份RBS](#21%e9%98%bf%e9%87%8c%e4%ba%91%e7%9a%84%e6%95%b0%e6%8d%ae%e5%ba%93%e5%a4%87%e4%bb%bdrbs)
+  - [2.2.github上的开源方案](#22github%e4%b8%8a%e7%9a%84%e5%bc%80%e6%ba%90%e6%96%b9%e6%a1%88)
+- [3.我的方案](#3%e6%88%91%e7%9a%84%e6%96%b9%e6%a1%88)
+- [4.quickstart](#4quickstart)
+  - [4.1.运行条件](#41%e8%bf%90%e8%a1%8c%e6%9d%a1%e4%bb%b6)
+  - [4.2.下载工程代码](#42%e4%b8%8b%e8%bd%bd%e5%b7%a5%e7%a8%8b%e4%bb%a3%e7%a0%81)
+  - [4.3.配置config.yml，定义第一个备份任务](#43%e9%85%8d%e7%bd%aeconfigyml%e5%ae%9a%e4%b9%89%e7%ac%ac%e4%b8%80%e4%b8%aa%e5%a4%87%e4%bb%bd%e4%bb%bb%e5%8a%a1)
+  - [4.4.数据库备份](#44%e6%95%b0%e6%8d%ae%e5%ba%93%e5%a4%87%e4%bb%bd)
+  - [4.5.数据库恢复](#45%e6%95%b0%e6%8d%ae%e5%ba%93%e6%81%a2%e5%a4%8d)
+  - [4.5.1. 数据恢复执行样例](#451-%e6%95%b0%e6%8d%ae%e6%81%a2%e5%a4%8d%e6%89%a7%e8%a1%8c%e6%a0%b7%e4%be%8b)
+- [6.配置参数详解](#6%e9%85%8d%e7%bd%ae%e5%8f%82%e6%95%b0%e8%af%a6%e8%a7%a3)
+
+
+
+# 1.我的需求场景
 
 - 1.基本需求: 备份和容灾恢复，按指定时间周期备份，当生产系统故障时，能够进行恢复
 - 2.业务需求: 能够回滚恢复到某个指定时间点的数据
@@ -11,10 +28,11 @@
 - 4.故障后的恢复过程速度快
 - 5.廉价的备份成本
 - 6.备份数据除了保存在本地外，也能够保存在云存储
+- 7.支持mongodb、mysql等常用的业务数据库
 
-# 我的探寻过程
+# 2.我的探寻过程
 
-## 阿里云的数据库备份RBS
+## 2.1.阿里云的数据库备份RBS
 
 详细参见官网介绍：[阿里云的数据库备份服务RBS](https://help.aliyun.com/document_detail/59133.html?spm=a2c4g.11186623.6.542.360ed81dKYapLT)
 
@@ -25,7 +43,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 
 第二点:最不能忍受，恢复数据执行起来死慢死慢的，我做了个测试，总共50M数据文件，RBS恢复了2个小时还没有执行完，这么点数据量用mongorestore，几秒钟就可以执行完。
 
-## github上的开源方案
+## 2.2.github上的开源方案
 
 - [mgob](https://github.com/stefanprodan/mgob/) : 一个golang大神写的，是基于docker容器的Mongodb备份程序。可以备份到亚马逊的S3、gcloud，也可以本地备份。
   - 但是不支持备份到阿里云，
@@ -36,7 +54,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 
 总结： 不管是阿里云的数据库备份RBS还是github已有的开源方案，都不是太适合我们的业务场景需求，只好重新造轮子了。
 
-# 我的方案
+# 3.我的方案
 
 【方案总体框架】包含两个主要程序：
 
@@ -69,24 +87,24 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - input_uri: 输入目标数据库的uri
 - choice_task: 选择一个备份任务（在config.tasks中配置）
 - choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
-![数据库恢复执行逻辑有限状态机](doc/数据库恢复执行逻辑有限状态机.jpg)
+![数据库恢复执行逻辑有限状态机](http://img.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
 
-# quickstart
+# 4.quickstart
 
-运行条件：
+## 4.1.运行条件
 
 - `python3.6版本以上`
 - 如果是mongodb，需要预安装mongodump和mongorestore命令
-- 如果是mysql，需要预安装mysql客户端
+- 如果是mysql，需要预安装mysql客户端,可以支持mysql和mysqldump命令
 
-## 下载工程
+## 4.2.下载工程代码
 ```
 git clone https://github.com/perfectstorm88/db-backup-and-restore
 cd db-backup-and-restore
 pip install -r requirements.txt
 cp config.sample.yml config.yml
 ```
-## 配置config.yml，定义第一个备份任务
+## 4.3.配置config.yml，定义第一个备份任务
 
 最简单的样例如下：
 ```yml
@@ -103,7 +121,7 @@ tasks:
       uri: "mongodb://test:test@127.0.0.1:13722/lcz_test1" #
 ```
 
-## 数据库备份
+## 4.4.数据库备份
 
 有两种启动方式，启动常驻进程，周期任务调度：
 
@@ -115,17 +133,21 @@ python backup.py -l
 python backup.py -t mongo_my_test1
 ```
 
-## 数据库恢复
+## 4.5.数据库恢复
 
 执行restore.py ，按着引导步骤执行即可
 ```bash
 python restore.py 
 ```
+## 4.5.1. 数据恢复执行样例
+恢复程序】的执行逻辑如下面有限状态机所示，用户只需要根据引导输入3个指令即可完成一个恢复：
 
+- input_uri: 输入目标数据库的uri
+- choice_task: 选择一个备份任务（在config.tasks中配置）
+- choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
+![数据库恢复执行逻辑有限状态机](http://img.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
 
-![数据库恢复执行逻辑有限状态机](doc/数据库恢复执行逻辑有限状态机.jpg)
-### 数据恢复执行样例
-python restore.py
+执行 `python restore.py`命令，过程如下：
 ```bash
 *******************welcome to use database restore program****************
 # 【输入】选择一个备份任务（任务名称是在config.yml )
@@ -155,7 +177,7 @@ process exit
 ```
 
 
-# 配置参数详解
+# 6.配置参数详解
 ```yml
 tmpPath: './temp'
 archivePath: './archive'
