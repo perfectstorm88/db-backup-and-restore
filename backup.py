@@ -1,3 +1,4 @@
+#-*- coding: UTF-8 -*- 
 """
 db backup
 """
@@ -88,13 +89,11 @@ def clear_old_backup(config, db_file, task_name):
     if 'oss' in config:
         # 清除oss旧文件
         ossConf = config.oss
-        oss_spaese = {}
-        for i in ossConf.timeDecay: oss_spaese.update(i.items())
-        if ossConf and oss_spaese:
+        if ossConf and ossConf.timeDecay:
             oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
             file_list = oss.get_file_list(os.path.join(ossConf.prefix, task_name))
             file_name_list = map(lambda x: os.path.basename(x['name']).split(".")[0], file_list)
-            file_dict = TimeDecay.time_decay(file_name_list, oss_spaese, None, '%Y%m%d%H%M%S')
+            file_dict = TimeDecay.time_decay(file_name_list, ossConf.timeDecay, None, '%Y%m%d%H%M%S')
             for key, value in file_dict.items():
                 if not value: oss.delete(os.path.join(ossConf.prefix, task_name, key + '.zip'))
     if 'local' in config:
