@@ -84,5 +84,6 @@ class TimeDecay(object):
         for x in _ret_temp:
             for y in _ret_temp[x]:
                 ret[y] = x
+                break
 
         return ret

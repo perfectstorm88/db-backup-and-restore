@@ -1,4 +1,4 @@
-
+#-*- coding: UTF-8 -*-
 import os
 import random
 import string
@@ -86,6 +86,8 @@ class RestoreHelper(object):
         if not len(self.file_obj_list):
             print(f'task:{self.task.name} has no data to restore, please re-select the task again')
             return 'choice_task'
+
+        self.file_obj_list = sorted(self.file_obj_list,key=lambda x:x['name'])
         for i, file_obj in enumerate(self.file_obj_list):
             # print(
             #     f' {i}) {file_obj["name"]} {int(file_obj["size"]/1024/1024)}MB ({_local_or_remote})')

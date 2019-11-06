@@ -2,3 +2,4 @@ oss2
 schedule
 pydash
 pymongo
+pyyaml

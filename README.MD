@@ -17,6 +17,7 @@
   - [4.5.数据库恢复](#45%e6%95%b0%e6%8d%ae%e5%ba%93%e6%81%a2%e5%a4%8d)
   - [4.5.1. 数据恢复执行样例](#451-%e6%95%b0%e6%8d%ae%e6%81%a2%e5%a4%8d%e6%89%a7%e8%a1%8c%e6%a0%b7%e4%be%8b)
 - [6.配置参数详解](#6%e9%85%8d%e7%bd%ae%e5%8f%82%e6%95%b0%e8%af%a6%e8%a7%a3)
+- [7.扩展阅读](#7%e6%89%a9%e5%b1%95%e9%98%85%e8%af%bb)
 
 
 
@@ -41,7 +42,7 @@
 RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两个致命缺点，一个是贵，另一个是死慢死慢的
 
 第一点：贵，RBS是按备份数据量收费的，而备份数据量如下所示，“通过备份链路的实际数据大小”，跟你每个月执行备份的次数有关。如果我有50G数据，每天备份一次，每个月就要1000多块钱，另外备份存储也要单独收费
-![阿里云RBM中的数据量定义](https://imgs.lichangzhen.top/2019/dbbr阿里云RBM中的数据量定义.jpg)
+![阿里云RBM中的数据量定义](http://img.lichangzhen.top/2019/dbbr阿里云RBM中的数据量定义.jpg)
 
 第二点:最不能忍受，恢复数据执行起来死慢死慢的，我做了个测试，总共50M数据文件，RBS恢复了2个小时还没有执行完，这么点数据量用mongorestore，几秒钟就可以执行完。
 
@@ -64,7 +65,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - 备份程序：常驻进程，周期性执行备份任务，备份文件保存在本地或者上传到云存储(如阿里云、七牛、腾讯云等)。
 - 恢复程序：单次执行，通过引导步骤傻瓜式操作，简单易上手
 
-![数据库备份和恢复流程](https://imgs.lichangzhen.top/2019/dbbr数据库备份和恢复流程.jpg)
+![数据库备份和恢复流程](http://img.lichangzhen.top/2019/dbbr数据库备份和恢复流程.jpg)
 
 ## 3.2.基于时间衰减的备份存储策略
 【基于时间衰减的备份存储策略】
@@ -76,14 +77,14 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - `"months": 6`, 最近6个月，每月保存一份
 - `"years": 5`,  最近5年，每年保存一份，超过5年以上就不保留备份了
 
-![基于时间衰减的备份存储策略](https://imgs.lichangzhen.top/2019/dbbr稀疏备份策略.jpg)
+![基于时间衰减的备份存储策略](http://img.lichangzhen.top/2019/dbbr稀疏备份策略.jpg)
 
 
 
 比如5年的历史数据，备份数= 6 + 3 + 6 + 5 = 20
 
 以每个备份20G的存储大小为例，20G*20份==400G，购买一个500G的归档型存储包，每年的存储费用为135元，算是非常便宜的方案了（参加 [阿里云产品定价-对象存储OSS](https://www.aliyun.com/price/product?spm=a2c4g.11186623.2.13.5a9c7b554eTNZ0#/oss/detail)）
-![阿里云产品定价-对象存储OSS-存档存储包](https://imgs.lichangzhen.top/2019/dbbr阿里云产品定价-对象存储OSS-存档存储包.jpg)
+![阿里云产品定价-对象存储OSS-存档存储包](http://img.lichangzhen.top/2019/dbbr阿里云产品定价-对象存储OSS-存档存储包.jpg)
 
 ## 3.3.恢复程序
 【恢复程序】的执行逻辑如下面有限状态机所示，用户只需要根据引导输入3个指令即可完成一个恢复：
@@ -91,7 +92,7 @@ RBS满足需求场景中的1、2、3，功能还是挺强大的，但是有两�
 - input_uri: 输入目标数据库的uri
 - choice_task: 选择一个备份任务（在config.tasks中配置）
 - choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
-![数据库恢复执行逻辑有限状态机](https://imgs.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
+![数据库恢复执行逻辑有限状态机](http://img.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
 
 # 4.quickstart
 
@@ -130,7 +131,7 @@ tasks:
 有两种启动方式，启动常驻进程，周期任务调度：
 
 ```bash
-python backup.py -l
+nohup python  $(pwd)/backup.py -l & # nohup方式启动
 ```
 另一种方式，是直接启动任务，忽略schedule参数，立即执行数据库备份，一般应用在测试场景,如
 ```bash
@@ -149,7 +150,7 @@ python restore.py
 - input_uri: 输入目标数据库的uri
 - choice_task: 选择一个备份任务（在config.tasks中配置）
 - choice_file: 选择一个备份文件 (可以是本地的备份文件，也可以是远端的备份文件)
-![数据库恢复执行逻辑有限状态机](https://imgs.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
+![数据库恢复执行逻辑有限状态机](http://img.lichangzhen.top/2019/dbbr数据库恢复执行逻辑有限状态机.jpg)
 
 执行 `python restore.py`命令，过程如下：
 ```bash
@@ -236,3 +237,10 @@ tasks:
       databases: "db1"
       host: "127.0.0.1"
 ```
+
+# 7.扩展阅读
+上述方案为全量备份，比较适合于中小型业务场景，比如200G以下的的数据量，如果是过T的数据量，可以考虑定期全量+增量备份方案，下面为扩展阅读
+
+- [MongoShake——基于MongoDB的跨数据中心的数据复制平台](https://github.com/alibaba/MongoShake):基于mongodb oplog的集群复制工具，可以满足迁移和同步的需求，进一步实现灾备和多活功能
+- [mongodb增量备份脚本与原理](https://my.oschina.net/passerman/blog/712035): 对应开源项目，https://gitee.com/passer/mongodb_backup_script
+- [史上最通俗易懂的IPFS入门介绍01](https://baijiahao.baidu.com/s?id=1602399996570066329&wfr=spider&for=pc):关于存储，有个朋友脑洞大开，推荐用IPFS

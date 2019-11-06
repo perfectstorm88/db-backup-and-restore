@@ -1,3 +1,4 @@
+#-*- coding: UTF-8 -*-
 """
 db backup
 """
@@ -74,8 +75,11 @@ def remote_save(localFilePath, config, taskName):
                         ossConf.url, ossConf.bucket)
         ossPath = ossConf.prefix + taskName + \
             "/" + os.path.basename(localFilePath)
+        starttime = datetime.datetime.now()
+        logger.info(f'start upload file to oss:{ossPath}')
         oss.upload(ossPath, localFilePath)
-
+        endtime = datetime.datetime.now()
+        logger.info(f'end upload file to oss, takes {endtime - starttime}seconds')
 
 def backup(task, config):
     db_file = backup_db(task, config)
@@ -88,26 +92,26 @@ def clear_old_backup(config, db_file, task_name):
     if 'oss' in config:
         # 清除oss旧文件
         ossConf = config.oss
-        oss_spaese = {}
-        for i in ossConf.timeDecay: oss_spaese.update(i.items())
-        if ossConf and oss_spaese:
-            oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
-            file_list = oss.get_file_list(os.path.join(ossConf.prefix, task_name))
-            file_name_list = map(lambda x: os.path.basename(x['name']).split(".")[0], file_list)
-            file_dict = TimeDecay.time_decay(file_name_list, oss_spaese, None, '%Y%m%d%H%M%S')
-            for key, value in file_dict.items():
-                if not value: oss.delete(os.path.join(ossConf.prefix, task_name, key + '.zip'))
+        oss = OssHelper(ossConf.accessKey, ossConf.secretKey, ossConf.url, ossConf.bucket)
+        file_list = oss.get_file_list(os.path.join(ossConf.prefix, task_name))
+        file_dict = dict(zip(map(lambda x: os.path.basename(x['name']).split(".")[0], file_list), file_list))
+        ret_file_dict = clean_rule(file_dict,config.oss)
+        for key, value in ret_file_dict.items():
+            if value: continue
+            delete_file = ossConf.prefix + task_name + "/"+ file_dict[key]['name']
+            logger.info(f'delete remote file  {delete_file}')
+            oss.delete(delete_file)
+
     if 'local' in config:
         local_path = os.path.dirname(db_file)
         zip_files = os.listdir(local_path)
-        local_time_decay = config.local.timeDecay
-        if local_time_decay:
-            local_decay = {}
-            for i in local_time_decay: local_decay.update(i.items()) # 合并时间衰减保存策略 list => dict
-            local_file_name_list = map(lambda x: x.split(".")[0], zip_files)
-            local_file = TimeDecay.time_decay(local_file_name_list, local_decay, None, '%Y%m%d%H%M%S')
-            for key, value in local_file.items():
-                if not value: os.remove(os.path.join(local_path, key + ".zip"))  # 删除value为空的文件
+        file_dict = dict(zip(map(lambda x: x.split(".")[0], zip_files), zip_files))
+        ret_file_dict = clean_rule(file_dict,config.local)
+        for key, value in ret_file_dict.items():
+            if value: continue
+            delete_file = os.path.join(local_path, file_dict[key])
+            logger.info(f'delete local file  {delete_file}')
+            os.remove(delete_file)  # 删除value为空的文件
         # else:
         #     #清除本地文件, 默认保留时间是365天
         #     expireDays = config.expireDays if config.expireDays else 365
@@ -122,6 +126,22 @@ def clear_old_backup(config, db_file, task_name):
         os.remove(db_file)
 
 # 备份数据库
+
+def clean_rule(file_dict,rules):
+    time_decay = rules.timeDecay
+    ret_file_dict = file_dict
+    if time_decay:
+        ret_file_dict = TimeDecay.time_decay(file_dict.keys(), time_decay, None, '%Y%m%d%H%M%S')
+    elif rules.retention:
+        keys = list(file_dict.keys())
+        if(len(keys) <= rules.retention):
+            ret_file_dict = file_dict
+        else:
+            keys.sort()
+            ret_file_dict = file_dict.copy()
+            for i in range(len(keys)-rules.retention):
+                ret_file_dict[keys[i]]=None
+    return ret_file_dict
 
 
 def backup_db(task, config):
