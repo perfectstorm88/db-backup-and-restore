@@ -80,7 +80,7 @@ class RestoreHelper(object):
                     "path":os.path.join(local_dir, _dir)
                 }))
         if self.oss:
-            fileList = self.oss.get_file_list(f"{os.path.basename(archivePath)}/{self.task.name}/")
+            fileList = self.oss.get_file_list(os.path.join(self.config.oss.prefix, self.task.name))
             self.file_obj_list.extend(fileList)
         print('please choice the following file to restore')
         if not len(self.file_obj_list):
