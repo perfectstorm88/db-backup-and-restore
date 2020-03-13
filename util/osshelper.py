@@ -87,5 +87,5 @@ class OssHelper:
                                 )
 
 if __name__ == '__main__':
-    oss = OssHelper('LTAI9ziVIDTcSbW0','fsITkWUPxjfljcS3lEsdZSlGBlGhcN','http://oss-cn-hangzhou.aliyuncs.com','jfjun4test')
-    print(oss.get_file_list('backup/'))
+    pass
+
