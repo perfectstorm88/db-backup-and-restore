@@ -163,7 +163,7 @@ def start(task, config):
     except Exception:
         logger.info('encounter an exception:', exc_info=True)
     endtime = datetime.datetime.now()
-    logger.info(f'start exec backup task [{task["name"]}], takes {endtime - starttime}seconds')
+    logger.info(f'end exec backup task [{task["name"]}], takes {endtime - starttime}seconds')
 
 def loop():
 
@@ -206,6 +206,8 @@ if __name__ == '__main__':
     elif args.task:
         _config = read_config()
         _task = pydash.find(_config.tasks, lambda x: x.name == args.task)
+        if _task is None and args.task.isdigit():
+            _task = _config.tasks[int(args.task)]
         if _task is None:
             logger.info(f'could not find task by name:{args.task}')
             exit()

@@ -64,7 +64,7 @@ class TimeDecay(object):
         for i, unit in enumerate(TIME_UNIT_SEQ):
             _this_end = TIME_UNIT_FORMAT[unit](end_time)
             p = {}
-            p[unit+'s'] = 0 - options[unit+'s']
+            p[unit+'s'] = 0 - int(options[unit+'s'])
             _this_begin = TIME_UNIT_FORMAT[unit](my_timedelta(end_time, **p))
             while len(datetime_list) > 0:
                 x = datetime_list.pop()  # 从大到小
