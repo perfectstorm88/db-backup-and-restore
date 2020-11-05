@@ -1,5 +1,5 @@
-tmpPath: './temp'
-archivePath: './archive'
+tmpPath: '../temp'
+archivePath: '../archive'
 # oss:  # 存储到OSS
 #   url: "http://oss-cn-hangzhou.aliyuncs.com"
 #   bucket: "jfjun4test"
@@ -27,7 +27,7 @@ local:
     years: 5,  # 最近5年，每年保存一份，超过5年以上就不保留备份了
 
 tasks:
-  - name: 'mongo_lcz_test1'
+  - name: 'mongo1'
     type: 'mongodb'
     # schedule表示执行时间策略
     # "day 03:21" # 每天 03:21执行
@@ -41,12 +41,13 @@ tasks:
       p: test
       h: 127.0.0.1:13722
 
-  - name: 'mysql_db1'
+  - name: 'mysql1'
     type: 'mysql'
     schedule: "day :00"  # 每周
     params:  # 通过mysqldumap执行的参数
       # uri: "mysql://root:123456@127.0.0.1/db1"
       u: "root"
-      p: "123456"
-      databases: "db1"
+      p: "!Aa123456"
+      P: 33309
+      databases: "eladmin"
       host: "127.0.0.1"

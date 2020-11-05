@@ -42,7 +42,7 @@ def read_config():
     读取配置文件
     """
     config_file = os.path.realpath(os.path.join(
-        os.path.dirname(__file__), 'config.yml'))
+        os.path.dirname(__file__),'config', 'config.yml'))
     if not os.path.exists(config_file):
         raise Exception('config.yml not exists,you need first `cp config.sample.yml config.yml`,'
                         + ' and modify it by you environment')
@@ -57,8 +57,9 @@ def read_config():
         os.path.dirname(__file__), config_obj.tmpPath)
     if not config_obj.archivePath:
         raise Exception('config.yml not define archivePath!')
-    config_obj.archivePath = os.path.join(
-        os.path.dirname(__file__), config_obj.archivePath)
+    if not config_obj.archivePath.startswith('/'):
+        config_obj.archivePath = os.path.join(
+            os.path.dirname(__file__), config_obj.archivePath)
 
     if not config_obj.tasks:
         raise Exception('config.yml tasks not defined!')
@@ -66,9 +67,6 @@ def read_config():
 
 
 def remote_save(localFilePath, config, taskName):
-    if not localFilePath:
-        raise Exception(
-            'when remote file to remote, find the local not exists!')
     ossConf = config.oss
     if ossConf:
         oss = OssHelper(ossConf.accessKey, ossConf.secretKey,
@@ -152,7 +150,8 @@ def backup_db(task, config):
         db_file = MysqlHelper.backup(task.params, task['name'],config.tmpPath,config.archivePath)
     else:
         raise Exception(f"unsupported db_type [{db_type}]")
-
+    if db_file is None:
+        raise Exception(f"database backup failed!")
     return db_file
 
 
