@@ -27,19 +27,6 @@ local:
     years: 5  # 最近5年，每年保存一份，超过5年以上就不保留备份了
 
 tasks:
-  # - name: 'mongo1'
-  #   type: 'mongodb'
-  #   # schedule表示执行时间策略
-  #   # "day 03:21" # 每天 03:21执行
-  #   # "hour :31" # 每小时 31分执行
-  #   # "monday 03:21" # 每周一 03:21执行
-  #   schedule: "day 13:15" # 每天 13:15执行
-  #   params:  # 通过mongodump执行的参数
-  #     # uri: "mongodb://test:test@127.0.0.1:13722/lcz_test1"
-  #     d: lcz_test1
-  #     u: test
-  #     p: test
-  #     h: 127.0.0.1:13722
   - name: 'mysql1'
     type: 'mysql'
     schedule: "day 14:00"  # 每周
@@ -50,3 +37,13 @@ tasks:
       P: 33309
       databases: "eladmin"
       host: "127.0.0.1"
+  - name: 'mongo1'
+    type: 'mongodb'
+    schedule: "day 13:15" # 每天 13:15执行
+    params:  # 通过mongodump执行的参数
+      # uri: "mongodb://test:test@127.0.0.1:13722/lcz_test1"
+      authenticationDatabase: admin
+      d: dictionary
+      u: root
+      p: 123456
+      h: 10.1.192.118:27060

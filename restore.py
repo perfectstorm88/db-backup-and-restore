@@ -177,6 +177,7 @@ if __name__ == '__main__':
     r = RestoreHelper()
     status = 'start'
     while status != "exit":
+        # 高级属性，自动获取函数句柄并进行执行
         status = getattr(r, status)()
     print("process exit")
     # db_filepath = "/root/mongodb-backup-and-restore/./"

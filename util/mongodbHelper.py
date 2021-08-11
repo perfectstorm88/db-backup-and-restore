@@ -27,7 +27,7 @@ class MongodbHelper():
     """
     @staticmethod
     def sample():
-        return 'mongodb://test:test@47.97.22.225:13722/db1'   
+        return 'mongodb://test:test@47.97.22.225:13722/db1?authenticationDatabase=admin'   
 
     @staticmethod
     def backup(params, taskName, tmp_dir_base='./temp', archivePath='./archive'):
@@ -104,6 +104,11 @@ class MongodbHelper():
         cmd += " --db="+u.path.replace('/', '')
         cmd += f' --dir={db_file}'
         cmd += f' --drop'
+        if u.query:
+            for x in u.query.split('&'):
+                k,v = x.split('=')
+                cmd += f' --{k}={v}'
+           
         logger.info(f'start exec restore cmd: {cmd}')
         proc = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
