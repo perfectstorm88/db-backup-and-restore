@@ -4,7 +4,8 @@ FROM centos7-python36
 RUN rpm -ivh https://repo.mysql.com//mysql57-community-release-el7-11.noarch.rpm && yum install mysql-community-client.x86_64 -y
 
 # 安装依赖python库
-RUN pip install oss2 \
+RUN pip install --upgrade pip
+RUN pip install oss2==2.13.0 \
                 schedule \
                 pydash \
                 pymongo \
