@@ -1,7 +1,9 @@
-FROM centos7-python36
+FROM centos7-python:3.9.13
 
 # 安装mysql客户端 [centos 7 仅安装mysql client](https://www.cnblogs.com/buxizhizhoum/p/11725588.html)
-RUN rpm -ivh https://repo.mysql.com//mysql57-community-release-el7-11.noarch.rpm && yum install mysql-community-client.x86_64 -y
+RUN rpm -ivh https://repo.mysql.com//mysql57-community-release-el7-11.noarch.rpm 
+# && yum install mysql-community-client.x86_64 -y
+RUN rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 && yum install mysql-community-client.x86_64 -y
 
 # 安装依赖python库
 RUN pip install --upgrade pip
